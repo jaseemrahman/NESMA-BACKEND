@@ -4,12 +4,11 @@ URL configuration for NESMA project.
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
-from django.views.generic.base import RedirectView
 
 urlpatterns = [
-    path('superadmin/', include('superadmin.urls')),
     path('api/', include('website.urls')),
-    path('', RedirectView.as_view(pattern_name='superadmin:login', permanent=False)),
+    # Admin panel lives at the site root (the public website is a separate Next.js app)
+    path('', include('superadmin.urls')),
 ]
 
 handler404 = 'config.views.error_404'

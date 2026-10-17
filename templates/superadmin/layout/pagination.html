@@ -1,24 +1,49 @@
 {% load admin_tags %}
-{% if page_obj.has_other_pages %}
-<div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top flex-wrap gap-2">
-    <small class="text-muted">Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} total entries</small>
-    <ul class="pagination pagination-sm m-0">
-        {% if page_obj.has_previous %}
-        <li class="page-item"><a class="page-link" href="{% url_with_page page_obj.previous_page_number %}">Previous</a></li>
-        {% endif %}
-        {% elided_page_range page_obj as page_range %}
-        {% for i in page_range %}
-            {% if i == page_obj.number %}
-            <li class="page-item active"><span class="page-link" style="background:#2E368F; border-color:#2E368F;">{{ i }}</span></li>
-            {% elif i == page_obj.paginator.ELLIPSIS %}
-            <li class="page-item disabled"><span class="page-link">{{ i }}</span></li>
+{% if page_obj.paginator.count %}
+<div class="list-pagination">
+    <div class="list-pagination-info">
+        <span>Showing <strong>{{ page_obj.start_index }}</strong>&ndash;<strong>{{ page_obj.end_index }}</strong> of <strong>{{ page_obj.paginator.count }}</strong> {{ page_obj.paginator.count|pluralize:"entry,entries" }}</span>
+        <label class="list-pagination-size">
+            Rows per page
+            <select class="per-page-select" aria-label="Rows per page">
+                {% for size in page_obj.per_page_choices %}
+                <option value="{{ size }}" {% if size == page_obj.per_page %}selected{% endif %}>{{ size }}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav aria-label="Pagination">
+        <ul class="pagination pagination-sm m-0">
+            {% if page_obj.has_previous %}
+            <li class="page-item page-edge"><a class="page-link" href="{% url_with_page 1 %}" title="First page" aria-label="First page"><i class="fas fa-angle-double-left"></i></a></li>
+            <li class="page-item"><a class="page-link" href="{% url_with_page page_obj.previous_page_number %}" title="Previous page" aria-label="Previous page"><i class="fas fa-angle-left"></i></a></li>
             {% else %}
-            <li class="page-item"><a class="page-link" href="{% url_with_page i %}">{{ i }}</a></li>
+            <li class="page-item page-edge disabled"><span class="page-link"><i class="fas fa-angle-double-left"></i></span></li>
+            <li class="page-item disabled"><span class="page-link"><i class="fas fa-angle-left"></i></span></li>
             {% endif %}
-        {% endfor %}
-        {% if page_obj.has_next %}
-        <li class="page-item"><a class="page-link" href="{% url_with_page page_obj.next_page_number %}">Next</a></li>
-        {% endif %}
-    </ul>
+
+            {% elided_page_range page_obj as page_range %}
+            {% for i in page_range %}
+                {% if i == page_obj.number %}
+                <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                {% elif i == page_obj.paginator.ELLIPSIS %}
+                <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                {% else %}
+                <li class="page-item"><a class="page-link" href="{% url_with_page i %}">{{ i }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="{% url_with_page page_obj.next_page_number %}" title="Next page" aria-label="Next page"><i class="fas fa-angle-right"></i></a></li>
+            <li class="page-item page-edge"><a class="page-link" href="{% url_with_page page_obj.paginator.num_pages %}" title="Last page" aria-label="Last page"><i class="fas fa-angle-double-right"></i></a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link"><i class="fas fa-angle-right"></i></span></li>
+            <li class="page-item page-edge disabled"><span class="page-link"><i class="fas fa-angle-double-right"></i></span></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 {% endif %}

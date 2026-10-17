@@ -10,8 +10,8 @@
                     <h1 class="page-title"><i class="fas fa-user-tie me-2"></i>Career Applications</h1>
                 </div>
                 <div>
-                    <a href="{% url 'superadmin:CareerApplicationExport' %}?{{ request.GET.urlencode }}" class="btn btn-light" style="border-radius:12px; font-weight:600; color:#2E368F;">
-                        <i class="fas fa-file-excel me-1"></i> Export Excel
+                    <a href="{% url 'superadmin:CareerApplicationExport' %}" class="btn btn-light export-link" style="border-radius:12px; font-weight:600; color:#2E368F;">
+                        <i class="fas fa-file-pdf me-1" style="color:#DC2626;"></i> Export PDF
                     </a>
                 </div>
             </div>
@@ -24,7 +24,7 @@
                             <input type="text" name="search" class="form-control filter-input" placeholder="Search name, email, mobile, degree, location..." value="{{ search }}">
                         </div>
                         <div class="col-12 col-md-3">
-                            <select name="status" class="form-select filter-select auto-submit-select">
+                            <select name="status" class="form-select filter-select">
                                 <option value="">ALL STATUS</option>
                                 {% for value, label in status_choices %}
                                 <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label|upper }}</option>
@@ -32,7 +32,7 @@
                             </select>
                         </div>
                         <div class="col-12 col-md-3">
-                            <select name="education" class="form-select filter-select auto-submit-select">
+                            <select name="education" class="form-select filter-select">
                                 <option value="">ALL EDUCATION</option>
                                 {% for value, label in education_choices %}
                                 <option value="{{ value }}" {% if education_filter == value %}selected{% endif %}>{{ label|upper }}</option>
@@ -51,7 +51,7 @@
             <div class="row">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-body">
+                        <div class="card-body" id="ajax-list">
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle">
                                     <thead>
@@ -69,10 +69,10 @@
                                     </thead>
                                     <tbody>
                                         {% for a in applications %}
-                                        <tr class="{% if a.status == 'new' %}row-unread{% endif %}">
+                                        <tr class="row-link{% if a.status == 'new' %} row-new{% endif %}" data-href="{% url 'superadmin:CareerApplicationDetail' a.id %}" title="Open application details">
                                             <td class="text-center font-weight-bold text-secondary">{{ applications.start_index|add:forloop.counter0 }}</td>
                                             <td style="font-weight:600;">
-                                                <a href="{% url 'superadmin:CareerApplicationDetail' a.id %}" style="color:#1E293B;">{{ a.full_name }}</a>
+                                                <span style="color:#1E293B;">{{ a.full_name }}</span>
                                                 {% if a.language == 'ar' %}<span class="badge bg-light text-dark border ms-1" style="font-size:10px;">AR</span>{% endif %}
                                             </td>
                                             <td style="font-size:13px;">
@@ -95,7 +95,7 @@
                                                 {% else %}-{% endif %}
                                             </td>
                                             <td>
-                                                <select class="form-select form-select-sm application-status-select" data-url="{% url 'superadmin:CareerApplicationStatus' a.id %}" style="border-radius:10px; font-size:12px; font-weight:600;">
+                                                <select class="application-status-select status-{{ a.status }}" data-url="{% url 'superadmin:CareerApplicationStatus' a.id %}" title="Change status">
                                                     {% for value, label in status_choices %}
                                                     <option value="{{ value }}" {% if a.status == value %}selected{% endif %}>{{ label }}</option>
                                                     {% endfor %}
@@ -106,9 +106,6 @@
                                             </td>
                                             <td class="text-center">
                                                 <div class="action-buttons-wrap">
-                                                    <a href="{% url 'superadmin:CareerApplicationDetail' a.id %}" class="btn-action-edit" title="View details">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
                                                     <button type="button" class="btn-action-delete trigger-delete-modal" data-name="{{ a.full_name }}" data-url="{% url 'superadmin:CareerApplicationDelete' a.id %}" title="Delete">
                                                         <i class="fas fa-trash-alt"></i>
                                                     </button>
@@ -143,7 +140,11 @@
         var select = $(this);
         $.post(select.data('url'), {'status': select.val(), 'csrfmiddlewaretoken': '{{ csrf_token }}'})
             .done(function() {
-                select.closest('tr').toggleClass('row-unread', select.val() === 'new');
+                select.closest('tr').toggleClass('row-new', select.val() === 'new');
+                select.removeClass(function(i, cls) { return (cls.match(/status-\S+/g) || []).join(' '); })
+                      .addClass('status-' + select.val());
+                // a status filter is active -> the row may no longer belong in this list
+                if ($('select[name="status"]').val()) { window.reloadAjaxList(); }
                 var $t = $('<div class="sa-toast toast-success"><i class="fas fa-check-circle"></i><div class="sa-toast-content"><p>Status updated successfully!</p></div></div>').appendTo('.global-toast-container');
                 setTimeout(function() { $t.addClass('fade-out'); setTimeout(function() { $t.remove(); }, 400); }, 3000);
             })

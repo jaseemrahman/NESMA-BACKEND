@@ -8,9 +8,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="shortcut icon" type="image/png" href="{% static 'superadmin/assets/images/brand/nit-fav.png' %}" />
     <title>NIT Admin | Sign In</title>
-    <link id="style" href="{% static 'superadmin/assets/plugins/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet"/>
-    <link href="{% static 'superadmin/assets/css/style.css' %}" rel="stylesheet"/>
-    <link href="{% static 'superadmin/assets/css/icons.css' %}" rel="stylesheet"/>
+    <link href="{% static 'superadmin/assets/css/admin.bundle.min.css' %}" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
@@ -319,23 +317,6 @@
             box-shadow: 0 3px 10px rgba(46,54,143,0.3);
         }
 
-        /* Credit */
-        .login-credit {
-            text-align: center;
-            margin-top: 28px;
-        }
-
-        .login-credit a {
-            color: rgba(255,255,255,0.2);
-            font-size: 10px;
-            letter-spacing: 1.2px;
-            text-decoration: none;
-            font-weight: 600;
-            text-transform: uppercase;
-            transition: color 0.2s;
-        }
-
-        .login-credit a:hover { color: var(--bd-primary); }
 
         /* Slide-in animation */
         @keyframes slideUp {
@@ -420,11 +401,7 @@
                     </button>
                 </form>
 
-                <div class="login-credit">
-                    <span style="font-size:11px; font-weight:700; letter-spacing:1.8px; text-transform:uppercase; color:rgba(255,255,255,0.45);">
-                        DESIGNED AND DEVELOPED BY <a href="https://www.zuarak.com" target="_blank" rel="noopener" style="color:#2E368F; font-weight:800; text-decoration:none; margin-left:3px;">ZUARAK</a>
-                    </span>
-                </div>
+
             </div>
         </div>
     </div>

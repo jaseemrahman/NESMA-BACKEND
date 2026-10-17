@@ -10,8 +10,8 @@
                     <h1 class="page-title"><i class="fas fa-headset me-2"></i>Enquiries</h1>
                 </div>
                 <div>
-                    <a href="{% url 'superadmin:EnquiryExport' %}?{{ request.GET.urlencode }}" class="btn btn-light" style="border-radius:12px; font-weight:600; color:#2E368F;">
-                        <i class="fas fa-file-excel me-1"></i> Export Excel
+                    <a href="{% url 'superadmin:EnquiryExport' %}" class="btn btn-light export-link" style="border-radius:12px; font-weight:600; color:#2E368F;">
+                        <i class="fas fa-file-pdf me-1" style="color:#DC2626;"></i> Export PDF
                     </a>
                 </div>
             </div>
@@ -20,22 +20,15 @@
             <div class="card mb-4 border-0 bg-transparent shadow-none">
                 <div class="card-body p-0">
                     <form method="GET" class="row g-2 align-items-center filter-form">
-                        <div class="col-12 col-md-5">
+                        <div class="col-12 col-md-7">
                             <input type="text" name="search" class="form-control filter-input" placeholder="Search name, email, phone, company..." value="{{ search }}">
                         </div>
                         <div class="col-12 col-md-3">
-                            <select name="source" class="form-select filter-select auto-submit-select">
+                            <select name="source" class="form-select filter-select">
                                 <option value="">ALL SOURCES</option>
                                 {% for value, label in source_choices %}
                                 <option value="{{ value }}" {% if source_filter == value %}selected{% endif %}>{{ label|upper }}</option>
                                 {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-12 col-md-3">
-                            <select name="read" class="form-select filter-select auto-submit-select">
-                                <option value="">READ &amp; UNREAD</option>
-                                <option value="unread" {% if read_filter == 'unread' %}selected{% endif %}>UNREAD</option>
-                                <option value="read" {% if read_filter == 'read' %}selected{% endif %}>READ</option>
                             </select>
                         </div>
                         <div class="col-auto ms-auto ms-md-0">
@@ -50,7 +43,7 @@
             <div class="row">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-body">
+                        <div class="card-body" id="ajax-list">
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle">
                                     <thead>
@@ -61,14 +54,13 @@
                                             <th>Company</th>
                                             <th>Message</th>
                                             <th>Source</th>
-                                            <th>Status</th>
                                             <th>Received</th>
                                             <th class="text-center" style="font-weight:700; font-size:12px; color:#1A5276; letter-spacing:0.05em;">ACTION</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for e in enquiries %}
-                                        <tr class="{% if not e.is_read %}row-unread{% endif %}">
+                                        <tr>
                                             <td class="text-center font-weight-bold text-secondary">{{ enquiries.start_index|add:forloop.counter0 }}</td>
                                             <td style="font-weight:600; color:#1E293B;">
                                                 {{ e.full_name }}
@@ -82,8 +74,7 @@
                                             <td style="max-width:260px;">
                                                 {% if e.message %}
                                                 <span class="open-detail-modal" style="cursor:pointer; color:#1E293B;" data-plain="1"
-                                                      data-title="Message from {{ e.full_name }}" data-content="{{ e.message }}"
-                                                      data-read-url="{% url 'superadmin:EnquiryMarkRead' e.id %}" title="Click to read full message">
+                                                      data-title="Message from {{ e.full_name }}" data-content="{{ e.message }}" title="Click to read full message">
                                                     {{ e.message|truncatechars:60 }}
                                                 </span>
                                                 {% else %}
@@ -95,13 +86,6 @@
                                                 <span class="badge" style="background:#FEF3C7; color:#B45309;">Footer Form</span>
                                                 {% else %}
                                                 <span class="badge" style="background:#EEF0FA; color:#2E368F;">Contact Page</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                {% if e.is_read %}
-                                                <span class="badge bg-light text-muted read-badge">Read</span>
-                                                {% else %}
-                                                <span class="badge bg-primary read-badge">New</span>
                                                 {% endif %}
                                             </td>
                                             <td style="font-size:12px; color:#64748B; white-space:nowrap;">
@@ -120,7 +104,7 @@
                                         </tr>
                                         {% empty %}
                                         <tr>
-                                            <td colspan="9" class="text-center text-muted py-4">No enquiries found.</td>
+                                            <td colspan="8" class="text-center text-muted py-4">No enquiries found.</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>

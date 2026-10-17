@@ -20,13 +20,13 @@ urlpatterns = [
     path('Blogs', views.BlogList.as_view(), name='BlogList'),
     path('Blog-Add', views.BlogAdd.as_view(), name='BlogAdd'),
     path('Blog-Edit/<int:id>', views.BlogAdd.as_view(), name='BlogEdit'),
+    path('Blog/<int:id>', views.BlogDetail.as_view(), name='BlogDetail'),
     path('Blog-Delete/<int:id>', views.BlogDelete.as_view(), name='BlogDelete'),
     path('Editor-Image-Upload', views.EditorImageUpload.as_view(), name='EditorImageUpload'),
 
     # Enquiries Module
     path('Enquiries', views.EnquiryList.as_view(), name='EnquiryList'),
     path('Enquiries-Export', views.EnquiryExport.as_view(), name='EnquiryExport'),
-    path('Enquiry-Read/<int:id>', views.EnquiryMarkRead.as_view(), name='EnquiryMarkRead'),
     path('Enquiry-Delete/<int:id>', views.EnquiryDelete.as_view(), name='EnquiryDelete'),
 
     # Career Applications Module

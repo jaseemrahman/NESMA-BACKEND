@@ -159,13 +159,17 @@ class EnquirySerializer(SubmissionMixin, serializers.ModelSerializer):
         # Footer form sends a single "full_name"; contact page sends first/last names
         if full_name and not attrs.get('first_name'):
             attrs['first_name'] = full_name
+        # Report every missing field at once so the form can highlight them together
+        is_footer = attrs['source'] == Enquiry.SOURCE_FOOTER
+        errors = {}
         if not attrs.get('first_name', '').strip():
-            field = 'full_name' if attrs['source'] == Enquiry.SOURCE_FOOTER else 'first_name'
-            raise serializers.ValidationError({field: self.t('required')})
-        if attrs['source'] == Enquiry.SOURCE_CONTACT and not attrs.get('last_name', '').strip():
-            raise serializers.ValidationError({'last_name': self.t('required')})
-        if not attrs.get('message', '').strip() and attrs['source'] == Enquiry.SOURCE_FOOTER:
-            raise serializers.ValidationError({'message': self.t('required')})
+            errors['full_name' if is_footer else 'first_name'] = [self.t('required')]
+        if not is_footer and not attrs.get('last_name', '').strip():
+            errors['last_name'] = [self.t('required')]
+        if is_footer and not attrs.get('message', '').strip():
+            errors['message'] = [self.t('required')]
+        if errors:
+            raise serializers.ValidationError(errors)
         return attrs
 
 

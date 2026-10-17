@@ -1,26 +1,14 @@
 (function($) {
     "use strict";
 
-    const ps = new PerfectScrollbar('.app-sidebar', {
-        useBothWheelAxes: true,
-        suppressScrollX: true,
-        suppressScrollY: false,
+    // Only attach scrollbars to containers that exist on the current page
+    ['.app-sidebar', '.header-dropdown-list', '.notifications-menu', '.message-menu-scroll'].forEach(function(selector) {
+        if (document.querySelector(selector)) {
+            new PerfectScrollbar(selector, {
+                useBothWheelAxes: true,
+                suppressScrollX: true,
+                suppressScrollY: false,
+            });
+        }
     });
-    const ps1 = new PerfectScrollbar('.header-dropdown-list', {
-        useBothWheelAxes: true,
-        suppressScrollX: true,
-        suppressScrollY: false,
-    });
-    const ps2 = new PerfectScrollbar('.notifications-menu', {
-        useBothWheelAxes: true,
-        suppressScrollX: true,
-        suppressScrollY: false,
-    });
-    const ps3 = new PerfectScrollbar('.message-menu-scroll', {
-        useBothWheelAxes: true,
-        suppressScrollX: true,
-        suppressScrollY: false,
-    });
-
-    //P-scrolling
 })(jQuery);

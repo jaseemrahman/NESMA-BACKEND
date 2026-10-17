@@ -48,7 +48,7 @@ def run_in_background(func, *args, **kwargs):
 def send_admin_email(subject, template, context, reply_to=None, attachment=None):
     context = {
         **context,
-        'admin_url': settings.SITE_URL + '/superadmin/',
+        'admin_url': settings.SITE_URL + '/',
         'current_year': timezone.now().year,
     }
     html_body = render_to_string(template, context)

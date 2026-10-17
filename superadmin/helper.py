@@ -1,10 +1,9 @@
 from urllib.parse import urlsplit
 
 from django.conf import settings
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.http import HttpResponse
+from django.core.paginator import Paginator
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.shortcuts import render
-from django.utils import timezone
 
 LOCAL_HOSTS = ('localhost', '127.0.0.1', '0.0.0.0')
 
@@ -33,12 +32,38 @@ def renderhelper(request, folder, htmlpage, context=None):
     return render(request, 'superadmin/' + folder + '/' + htmlpage + '.html', context or {})
 
 
-def paginate(request, queryset, per_page=20):
-    paginator = Paginator(queryset, per_page)
+PAGE_SIZE_CHOICES = (10, 20, 50, 100)
+DEFAULT_PAGE_SIZE = 20
+
+
+def paginate(request, queryset):
+    """
+    Page of `queryset` for admin lists.
+    - `?per_page=` one of PAGE_SIZE_CHOICES (default 20)
+    - `?page=` invalid -> first page, past the end (e.g. after deleting the last row) -> last page
+    """
     try:
-        return paginator.page(request.GET.get('page', 1))
-    except (PageNotAnInteger, EmptyPage):
-        return paginator.page(1)
+        per_page = int(request.GET.get('per_page', DEFAULT_PAGE_SIZE))
+    except (TypeError, ValueError):
+        per_page = DEFAULT_PAGE_SIZE
+    if per_page not in PAGE_SIZE_CHOICES:
+        per_page = DEFAULT_PAGE_SIZE
+    page = Paginator(queryset, per_page).get_page(request.GET.get('page'))
+    page.per_page = per_page
+    page.per_page_choices = PAGE_SIZE_CHOICES
+    return page
+
+
+def safe_next(request, fallback):
+    """
+    The `next` URL (POST or GET) used to return to the same list page / filters after an action.
+    Only same-site relative paths are accepted (never an open redirect).
+    """
+    value = (request.POST.get('next') or request.GET.get('next') or '').strip()
+    if value.startswith('/') and not value.startswith('//') and url_has_allowed_host_and_scheme(
+            value, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        return value
+    return fallback
 
 
 def filter_by_status(queryset, status_filter):
@@ -54,29 +79,3 @@ def get_client_ip(request):
     if forwarded:
         return forwarded.split(',')[0].strip()
     return request.META.get('REMOTE_ADDR')
-
-
-def excel_response(filename, headers, rows):
-    """
-    Stream rows into an .xlsx download using openpyxl's fast write-only mode.
-    """
-    from openpyxl import Workbook
-    from openpyxl.cell import WriteOnlyCell
-    from openpyxl.styles import Font
-
-    wb = Workbook(write_only=True)
-    ws = wb.create_sheet('Data')
-    header_cells = []
-    for title in headers:
-        cell = WriteOnlyCell(ws, value=title)
-        cell.font = Font(bold=True)
-        header_cells.append(cell)
-    ws.append(header_cells)
-    for row in rows:
-        ws.append(row)
-
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    stamp = timezone.localtime().strftime('%Y%m%d_%H%M')
-    response['Content-Disposition'] = f'attachment; filename="{filename}_{stamp}.xlsx"'
-    wb.save(response)
-    return response

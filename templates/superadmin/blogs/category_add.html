@@ -10,7 +10,7 @@
                     <h1 class="page-title">{% if category.pk %}Edit Blog Category{% else %}Add Blog Category{% endif %}</h1>
                 </div>
                 <div>
-                    <a href="{% url 'superadmin:BlogCategoryList' %}" class="btn btn-light" style="border-radius:12px;">
+                    <a href="{{ back_url }}" class="btn btn-light" style="border-radius:12px;">
                         <i class="fas fa-arrow-left me-1"></i> Back to List
                     </a>
                 </div>
@@ -22,6 +22,7 @@
                         <div class="card-body">
                             <form method="POST">
                                 {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ back_url }}">
 
                                 <div class="mb-3">
                                     <label class="form-label" style="font-weight:600;">Category Name (English) <span class="text-danger">*</span></label>
@@ -29,18 +30,10 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label d-flex justify-content-between" style="font-weight:600;"><span>Category Name (Arabic)</span><span class="ar-text">اسم التصنيف</span></label>
-                                    <input type="text" name="name_ar" class="form-control ar-input" dir="rtl" placeholder="مثال: أخبار، مقالات، إعلانات" value="{{ category.name_ar|default:'' }}" maxlength="150">
-                                    <small class="text-muted">If empty, the English name is shown on the Arabic website.</small>
+                                    <label class="form-label d-flex justify-content-between" style="font-weight:600;"><span>Category Name (Arabic) <span class="text-danger">*</span></span><span class="ar-text">اسم التصنيف</span></label>
+                                    <input type="text" name="name_ar" class="form-control ar-input" dir="rtl" placeholder="مثال: أخبار، مقالات، إعلانات" value="{{ category.name_ar|default:'' }}" maxlength="150" required>
+                                    <small class="text-muted">Shown on the Arabic website.</small>
                                 </div>
-
-                                {% if category.slug %}
-                                <div class="mb-3">
-                                    <label class="form-label" style="font-weight:600;">API Slug</label>
-                                    <input type="text" class="form-control" value="{{ category.slug }}" disabled>
-                                    <small class="text-muted">Used by the website filter: <code>/api/blogs/?category={{ category.slug }}</code></small>
-                                </div>
-                                {% endif %}
 
                                 <div class="mt-4 text-end">
                                     <button type="submit" class="btn btn-primary px-4" style="border-radius:12px; font-weight:600;">Save Category</button>

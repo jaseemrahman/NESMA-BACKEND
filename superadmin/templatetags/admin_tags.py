@@ -7,6 +7,7 @@ register = template.Library()
 def url_with_page(context, page):
     """Current query string with `page` replaced, so pagination keeps every active filter."""
     params = context['request'].GET.copy()
+    params.pop('_', None)  # jQuery cache-buster from AJAX list reloads
     params['page'] = page
     return '?' + params.urlencode()
 

@@ -62,7 +62,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'superadmin.context_processors.sidebar_counts',
             ],
         },
     },
@@ -113,6 +112,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LOGIN_URL = 'superadmin:login'
+# Sessions read from cache (falls back to the DB) - saves a query on every admin page
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 
 # -----------------------------------------------------------------------------
@@ -134,7 +135,6 @@ TIME_FORMAT = 'h:i A'
 # -----------------------------------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-WHITENOISE_MAX_AGE = env.int('WHITENOISE_MAX_AGE', default=60 * 60 * 24)
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 MEDIA_URL = '/media/'
@@ -143,7 +143,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 STORAGES = {
     'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
     'staticfiles': {
-        'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'
+        # Production: content-hashed file names (cached by browsers for 1 year, new name on every change)
+        # + pre-compressed gzip/brotli copies served by WhiteNoise.
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'
         if not DEBUG else 'django.contrib.staticfiles.storage.StaticFilesStorage'
     },
 }
@@ -151,6 +153,8 @@ STORAGES = {
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 CV_MAX_SIZE_MB = env.int('CV_MAX_SIZE_MB', default=5)
+# Admin PDF export limit (build time grows with rows; ~3000 rows = ~100 pages in ~3 s)
+PDF_EXPORT_MAX_ROWS = env.int('PDF_EXPORT_MAX_ROWS', default=3000)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -185,6 +189,9 @@ CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     'https://nit-hazel.vercel.app',
     'http://localhost:3000',
 ])
+# Public API without cookies/credentials, so allowing every origin is safe.
+# Set CORS_ALLOW_ALL_ORIGINS=False later to restrict to CORS_ALLOWED_ORIGINS only.
+CORS_ALLOW_ALL_ORIGINS = env.bool('CORS_ALLOW_ALL_ORIGINS', default=True)
 CORS_URLS_REGEX = r'^/api/.*$'
 CORS_ALLOW_HEADERS = ['accept', 'accept-language', 'content-type', 'origin', 'x-requested-with']
 
@@ -213,7 +220,6 @@ SITE_URL = env('SITE_URL', default='http://127.0.0.1:8000').rstrip('/')
 # Public base URL used to build absolute image / file URLs in API responses.
 # Always forced to https (except localhost during development).
 MEDIA_DOMAIN = env('MEDIA_DOMAIN', default=SITE_URL).rstrip('/')
-FRONTEND_URL = env('FRONTEND_URL', default='https://nit-hazel.vercel.app').rstrip('/')
 
 
 # -----------------------------------------------------------------------------

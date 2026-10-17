@@ -3,7 +3,7 @@
     <footer class="footer mt-auto py-3 bg-white text-center border-top">
         <div class="container-fluid d-flex align-items-center justify-content-center">
             <span class="crafted-by-text">
-                DESIGNED AND DEVELOPED BY <a href="https://www.zuarak.com" target="_blank" class="zuarak-credit-link">ZUARAK</a>
+                &copy; {% now "Y" %} Nesma Infrastructure &amp; Technology
             </span>
         </div>
     </footer>
@@ -41,6 +41,7 @@
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:10px;">Cancel</button>
                     <form method="post" action="#" id="globalDeleteForm" class="m-0">
                         {% csrf_token %}
+                        <input type="hidden" name="next" value="">
                         <button type="submit" class="btn btn-danger" style="border-radius:10px;">Confirm Delete</button>
                     </form>
                 </div>
@@ -155,6 +156,10 @@ $(document).ready(function() {
             success: function(response) {
                 if(response.status === 'success') {
                     showToast('Status updated successfully!', 'success');
+                    var statusFilter = $('.filter-form select[name="status"]').val();
+                    if (statusFilter === 'active' || statusFilter === 'inactive') {
+                        reloadAjaxList();
+                    }
                 }
             },
             error: function(err) {
@@ -183,6 +188,7 @@ $(document).ready(function() {
             success: function(response) {
                 if(response.status === 'success') {
                     showToast('Sequence updated successfully!', 'success');
+                    reloadAjaxList();
                 }
             },
             error: function() {
@@ -197,13 +203,15 @@ $(document).ready(function() {
         var url = $(this).data('url') || '#';
         $('#globalDeleteTargetName').text('"' + name + '"');
         $('#globalDeleteForm').attr('action', url);
+        // after deleting, come back to the same list page / filters
+        $('#globalDeleteForm input[name="next"]').val($(this).data('next') || ($('#ajax-list').length ? currentListUrl() : ''));
         var deleteModal = new bootstrap.Modal(document.getElementById('globalDeleteModal'));
         deleteModal.show();
     });
 
     // Global Large Image Preview trigger
     $(document).on('click', '.preview-img-clickable', function() {
-        var src = $(this).attr('src');
+        var src = $(this).data('full') || $(this).attr('src');  // list thumbnails open the full image
         if (src) {
             $('#globalImagePreview').attr('src', src);
             var imgModal = new bootstrap.Modal(document.getElementById('globalImageModal'));
@@ -224,24 +232,6 @@ $(document).ready(function() {
         }
         var detailModal = new bootstrap.Modal(document.getElementById('globalDetailModal'));
         detailModal.show();
-
-        // Mark enquiry as read when its message is opened
-        var readUrl = $(this).data('read-url');
-        var row = $(this).closest('tr');
-        if (readUrl && row.hasClass('row-unread')) {
-            $.post(readUrl, {'is_read': 'true', 'csrfmiddlewaretoken': '{{ csrf_token }}'}, function() {
-                row.removeClass('row-unread');
-                row.find('.read-badge').removeClass('bg-primary').addClass('bg-light text-muted').text('Read');
-                var badge = $('.nav-count').first();
-                var n = parseInt(badge.text(), 10) - 1;
-                if (n > 0) { badge.text(n); } else { badge.remove(); }
-            });
-        }
-    });
-
-    // Filter Select Dropdown Auto-submit
-    $(document).on('change', '.auto-submit-select', function() {
-        $(this).closest('form').submit();
     });
 
     // Dynamic Filter Reset Button Highlight Script
@@ -345,75 +335,127 @@ $(document).ready(function() {
 
     checkFilterActive();
 
+    // ── AJAX list filtering ────────────────────────────────────────────────
+    // Only the #ajax-list region (table + pagination + summary) is replaced with the
+    // server's fresh HTML. Older in-flight requests are aborted so a slow response can
+    // never overwrite a newer one, and caching is disabled so results are always current.
+    var listXhr = null;
     var searchTimeout = null;
-    $(document).on('input keyup', '.filter-input', function(e) {
+
+    // Current list URL (path + filters + page + rows per page), without jQuery's cache-buster
+    function currentListUrl() {
+        var params = new URLSearchParams(window.location.search);
+        params.delete('_');
+        var query = params.toString();
+        return window.location.pathname + (query ? '?' + query : '');
+    }
+    window.currentListUrl = currentListUrl;
+
+    // Filters changed -> back to page 1, but keep the chosen rows-per-page
+    function listUrlFromForm() {
+        var form = $('.filter-form').first();
+        var params = new URLSearchParams(form.length ? form.serialize() : '');
+        Array.from(params.keys()).forEach(function(key) { if (!params.get(key)) { params.delete(key); } });  // drop empty filters
+        var perPage = new URLSearchParams(window.location.search).get('per_page');
+        if (perPage) { params.set('per_page', perPage); }
+        var query = params.toString();
+        return window.location.pathname + (query ? '?' + query : '');
+    }
+
+    function loadAjaxList(url, pushHistory) {
+        var $list = $('#ajax-list');
+        if (!$list.length) { window.location.href = url; return; }
+        if (listXhr) { listXhr.abort(); }
+        $list.css('opacity', '0.55');
+        listXhr = $.ajax({
+            url: url,
+            type: 'GET',
+            cache: false,
+            dataType: 'html',
+            success: function(html) {
+                var fresh = $(new DOMParser().parseFromString(html, 'text/html')).find('#ajax-list');
+                if (!fresh.length) { window.location.href = url; return; }
+                $list.html(fresh.html()).css('opacity', '1');
+                if (pushHistory) { window.history.pushState({ajaxList: true}, '', url); }
+            },
+            error: function(xhr, status) {
+                if (status !== 'abort') { $list.css('opacity', '1'); showToast('Could not load the list. Please try again.', 'error'); }
+            }
+        });
+    }
+
+    // Re-fetch the current page of the list with the current filters (after toggles, edits...)
+    function reloadAjaxList() {
+        loadAjaxList(window.location.pathname + window.location.search, false);
+    }
+    window.reloadAjaxList = reloadAjaxList;
+
+    $(document).on('input', '.filter-input', function() {
         checkFilterActive();
-        if ([37, 38, 39, 40, 9, 13, 16, 17, 18, 27, 91].indexOf(e.keyCode) !== -1) return;
-        var form = $(this).closest('form');
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(function() {
-            performAjaxFilter(form);
-        }, 200); // Super fast 200ms debounce!
+        searchTimeout = setTimeout(function() { loadAjaxList(listUrlFromForm(), true); }, 300);
     });
 
     $(document).on('change', '.filter-select', function() {
         checkFilterActive();
-        var form = $(this).closest('form');
-        performAjaxFilter(form);
+        loadAjaxList(listUrlFromForm(), true);
     });
 
-    // Handle AJAX pagination
-    $(document).on('click', '.pagination a', function(e) {
+    // Enter in the search box: filter via AJAX instead of a full page submit
+    $(document).on('submit', '.filter-form', function(e) {
         e.preventDefault();
-        var url = $(this).attr('href');
-        if (url && url !== '#') {
-            performAjaxFilter(null, url);
-        }
+        clearTimeout(searchTimeout);
+        loadAjaxList(listUrlFromForm(), true);
     });
 
-    function performAjaxFilter(form, customUrl) {
-        var url = customUrl || (form ? (form.attr('action') || window.location.pathname) : window.location.pathname);
-        var data = form ? form.serialize() : '';
-        
-        $('.table-responsive').css('opacity', '0.6');
-        
-        $.ajax({
-            url: url,
-            data: data,
-            type: 'GET',
-            success: function(response) {
-                var parser = new DOMParser();
-                var doc = parser.parseFromString(response, 'text/html');
-                
-                // Swap table content
-                var newTable = $(doc).find('.table-responsive').html();
-                $('.table-responsive').html(newTable).css('opacity', '1');
-                
-                // Swap pagination list
-                var newPagi = $(doc).find('.pagination').html();
-                if (newPagi) {
-                    $('.pagination').html(newPagi).parent().show();
-                } else {
-                    $('.pagination').parent().hide();
-                }
-                
-                // Swap summary count
-                var newSummary = $(doc).find('.text-muted').html();
-                if (newSummary) {
-                    $('.text-muted').html(newSummary);
-                }
-                
-                // Update history state so URL updates nicely
-                var fullUrl = url + (data ? ('?' + data) : '');
-                window.history.pushState({path: fullUrl}, '', fullUrl);
-                
-                initCustomSelects();
-            },
-            error: function() {
-                $('.table-responsive').css('opacity', '1');
-            }
-        });
+    // Rows per page -> reload from page 1 with the same filters
+    $(document).on('change', '#ajax-list .per-page-select', function() {
+        var params = new URLSearchParams(window.location.search);
+        params.delete('_');
+        params.delete('page');
+        params.set('per_page', $(this).val());
+        loadAjaxList(window.location.pathname + '?' + params.toString(), true);
+    });
+
+    $(document).on('click', '#ajax-list .pagination a', function(e) {
+        e.preventDefault();
+        var href = $(this).attr('href');
+        if (href && href !== '#') { loadAjaxList(window.location.pathname + href, true); }
+    });
+
+    // Back / forward buttons: reload the list for that URL
+    window.addEventListener('popstate', function() {
+        if ($('#ajax-list').length) { window.location.reload(); }
+    });
+
+    // Clickable rows open the detail page; the row's own controls keep their normal behaviour
+    $(document).on('click', 'tr.row-link', function(e) {
+        if ($(e.target).closest('a, button, input, select, label, textarea, .form-switch, .custom-select-wrapper, .preview-img-clickable, .open-detail-modal').length) {
+            return;
+        }
+        var href = $(this).data('href');
+        if (!href) { return; }
+        href = withNext(href);
+        if (e.ctrlKey || e.metaKey) { window.open(href, '_blank'); } else { window.location.href = href; }
+    });
+
+    // Edit links on list pages remember the list page / filters to return to after saving
+    function withNext(href) {
+        return href + (href.indexOf('?') === -1 ? '?' : '&') + 'next=' + encodeURIComponent(currentListUrl());
     }
+    $(document).on('click', 'a.keep-place', function(e) {
+        if (e.ctrlKey || e.metaKey || e.shiftKey) { return; }
+        e.preventDefault();
+        window.location.href = withNext($(this).attr('href'));
+    });
+
+    // Export links always use the filters currently on screen
+    $(document).on('click', '.export-link', function(e) {
+        e.preventDefault();
+        var form = $('.filter-form').first();
+        var query = form.length ? form.serialize() : '';
+        window.location.href = $(this).attr('href').split('?')[0] + (query ? '?' + query : '');
+    });
 });
 
     // Image Upload Preview Handler

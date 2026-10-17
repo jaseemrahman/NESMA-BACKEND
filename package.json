@@ -1,0 +1,12 @@
+{
+  "name": "nesma-admin-assets",
+  "private": true,
+  "description": "Build step for the admin panel CSS bundle (only needed when templates/theme classes change).",
+  "scripts": {
+    "build:css": "node scripts/build-admin-css.mjs"
+  },
+  "devDependencies": {
+    "clean-css": "5.3.3",
+    "purgecss": "6.0.0"
+  }
+}

@@ -1,6 +1,8 @@
 import datetime
+from urllib.parse import urlencode
 import uuid
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -10,22 +12,57 @@ from django.db.models import Count, Q
 from django.db.models.deletion import ProtectedError
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.html import strip_tags
 from django.utils.text import slugify
 from django.views import View
+from django.views.decorators.cache import never_cache
 
-from superadmin.context_processors import clear_sidebar_counts
-from superadmin.helper import absolute_media_url, excel_response, filter_by_status, paginate, renderhelper
+from superadmin.helper import absolute_media_url, filter_by_status, paginate, renderhelper, safe_next
 from superadmin.models import Blog, BlogCategory, CareerApplication, Enquiry, optimize_image, validate_image
+from superadmin.pdf_export import pdf_response
 
 # Models that the generic AJAX status / sequence handlers may touch
 TOGGLEABLE_MODELS = {'Blog': Blog, 'BlogCategory': BlogCategory}
 MAX_IMAGE_MB = 10
 
 
+@method_decorator(never_cache, name='dispatch')
 class AdminView(LoginRequiredMixin, View):
+    """Logged-in admin pages; never cached so AJAX filters / back button always show fresh data."""
     login_url = 'superadmin:login'
+    list_url_name = None  # list page to return to after save / delete
+
+    def back_url(self):
+        """Where 'Back' / save / delete should return: the list page + filters the admin came from."""
+        return safe_next(self.request, reverse(self.list_url_name))
+
+
+def export_response(request, list_url, queryset, make_row, filename, title, headers, col_widths, filters):
+    """
+    PDF export of the filtered list.
+
+    Large data: one COUNT query decides what to do, then rows are streamed from the database in chunks
+    (never loaded all at once). A PDF is limited to PDF_EXPORT_MAX_ROWS rows (beyond ~100 pages it is slow
+    to build and nobody reads it); above that, or with no matching rows, the admin gets a message instead.
+    """
+    total = queryset.count()
+    limit = settings.PDF_EXPORT_MAX_ROWS
+    message = None
+    if not total:
+        message = 'No records found for the selected filters - nothing to export.'
+    elif total > limit:
+        message = (f'{total:,} records match your filters - too many for one PDF (limit {limit:,}). '
+                   'Please narrow the filters (e.g. by status, source or search) and export again.')
+    if message:
+        messages.warning(request, message)
+        return redirect(f'{list_url}?{request.GET.urlencode()}' if request.GET else list_url)
+
+    rows = (make_row(index, obj) for index, obj in enumerate(queryset.iterator(chunk_size=2000), start=1))
+    return pdf_response(filename, title, headers, rows, col_widths, filters, total=total)
 
 
 # ── AUTH & DASHBOARD ────────────────────────────────────────────────────────
@@ -72,7 +109,6 @@ class Dashboard(AdminView):
         )
         enquiry_stats = Enquiry.objects.aggregate(
             total=Count('id'),
-            unread=Count('id', filter=Q(is_read=False)),
             footer=Count('id', filter=Q(source=Enquiry.SOURCE_FOOTER)),
             contact=Count('id', filter=Q(source=Enquiry.SOURCE_CONTACT)),
         )
@@ -88,7 +124,7 @@ class Dashboard(AdminView):
             'enquiry_stats': enquiry_stats,
             'career_stats': career_stats,
             'recent_enquiries': Enquiry.objects.only(
-                'first_name', 'last_name', 'email', 'source', 'is_read', 'created_at'
+                'first_name', 'last_name', 'email', 'source', 'created_at'
             )[:6],
             'recent_applications': CareerApplication.objects.only(
                 'first_name', 'last_name', 'email', 'degree', 'status', 'created_at'
@@ -151,9 +187,15 @@ class BlogCategoryList(AdminView):
 
 
 class BlogCategoryAdd(AdminView):
+    list_url_name = 'superadmin:BlogCategoryList'
+
+    def render_form(self, request, category):
+        context = {'path': 'blog_categories', 'category': category, 'back_url': self.back_url()}
+        return renderhelper(request, 'blogs', 'category_add', context)
+
     def get(self, request, id=None):
         category = get_object_or_404(BlogCategory, id=id) if id else None
-        return renderhelper(request, 'blogs', 'category_add', {'path': 'blog_categories', 'category': category})
+        return self.render_form(request, category)
 
     def post(self, request, id=None):
         category = get_object_or_404(BlogCategory, id=id) if id else BlogCategory()
@@ -163,13 +205,14 @@ class BlogCategoryAdd(AdminView):
         def error(msg):
             messages.error(request, msg)
             category.name, category.name_ar = name, name_ar
-            return renderhelper(request, 'blogs', 'category_add', {'path': 'blog_categories', 'category': category})
+            return self.render_form(request, category)
 
-        if not name:
-            return error('Category name (English) is required.')
-        slug = category.slug or slugify(name)[:170]
+        if not name or not name_ar:
+            return error('Category name is required in both English and Arabic.')
+        # Slug is generated from the English name (used by the website filter tabs)
+        slug = slugify(name)[:170]
         if not slug:
-            return error('Category name must contain English letters or numbers (used for the URL slug).')
+            return error('English category name must contain letters or numbers.')
         if BlogCategory.objects.filter(Q(name__iexact=name) | Q(slug=slug)).exclude(id=category.id).exists():
             return error('A blog category with this name already exists.')
 
@@ -180,10 +223,12 @@ class BlogCategoryAdd(AdminView):
             category.sequence = (BlogCategory.objects.count() or 0) + 1
         category.save()
         messages.success(request, 'Blog category saved successfully!')
-        return redirect('superadmin:BlogCategoryList')
+        return redirect(self.back_url())
 
 
 class BlogCategoryDelete(AdminView):
+    list_url_name = 'superadmin:BlogCategoryList'
+
     def post(self, request, id):
         category = get_object_or_404(BlogCategory, id=id)
         try:
@@ -191,7 +236,7 @@ class BlogCategoryDelete(AdminView):
             messages.success(request, 'Blog category deleted successfully.')
         except ProtectedError:
             messages.error(request, 'This category has blogs. Move or delete those blogs first.')
-        return redirect('superadmin:BlogCategoryList')
+        return redirect(self.back_url())
 
 
 # ── BLOG MODULE ─────────────────────────────────────────────────────────────
@@ -203,7 +248,7 @@ class BlogList(AdminView):
 
         queryset = filter_by_status(
             Blog.objects.select_related('category').only(
-                'title', 'title_ar', 'image', 'location', 'date', 'sequence', 'is_active', 'slug', 'category__name'
+                'title', 'title_ar', 'image', 'thumbnail', 'location', 'date', 'sequence', 'is_active', 'slug', 'category__name'
             ),
             status_filter,
         )
@@ -226,6 +271,7 @@ class BlogList(AdminView):
 
 
 class BlogAdd(AdminView):
+    list_url_name = 'superadmin:BlogList'
     TEXT_FIELDS = (
         'title', 'title_ar', 'location', 'location_ar', 'short_description', 'short_description_ar',
         'content', 'content_ar', 'meta_title', 'meta_description',
@@ -236,6 +282,7 @@ class BlogAdd(AdminView):
             'path': 'blogs',
             'blog': blog,
             'categories': BlogCategory.objects.filter(is_active=True).only('name', 'name_ar'),
+            'back_url': self.back_url(),
         }
         return renderhelper(request, 'blogs', 'add', context)
 
@@ -249,8 +296,8 @@ class BlogAdd(AdminView):
         for field in self.TEXT_FIELDS:
             setattr(blog, field, request.POST.get(field, '').strip())
         blog.category_id = request.POST.get('category') or None
-        # URL slug: admin input, otherwise generated from the English title
-        blog.slug = slugify(request.POST.get('slug', '').strip() or blog.title)[:255]
+        # Website URL slug is always generated from the English title
+        blog.slug = slugify(blog.title)[:255]
         date = request.POST.get('date')
         try:
             blog.date = datetime.date.fromisoformat(date) if date else timezone.localdate()
@@ -266,16 +313,22 @@ class BlogAdd(AdminView):
             else:
                 blog.image = upload
 
-        if not blog.title or not blog.category_id:
-            errors.append('Title (English) and Category are required.')
-        if not blog.content or blog.content in ('<p><br></p>', '<br>'):
-            errors.append('Content (English) is required.')
+        if not blog.category_id:
+            errors.append('Category is required.')
+        if not blog.title or not blog.title_ar:
+            errors.append('Title is required in both English and Arabic.')
+        if is_empty_html(blog.content) or is_empty_html(blog.content_ar):
+            errors.append('Content is required in both English and Arabic.')
+        if bool(blog.location) != bool(blog.location_ar):
+            errors.append('Enter the location in both English and Arabic (or leave both empty).')
+        if bool(blog.short_description) != bool(blog.short_description_ar):
+            errors.append('Enter the short description in both English and Arabic (or leave both empty).')
         if not blog.image:
             errors.append('Featured image is required.')
         if blog.title and not blog.slug:
-            errors.append('URL slug is empty - enter an English slug.')
+            errors.append('English title must contain letters or numbers.')
         elif blog.slug and Blog.objects.filter(slug=blog.slug).exclude(id=blog.id).exists():
-            errors.append(f'The URL slug "{blog.slug}" is already used by another blog. Please change the slug.')
+            errors.append('Another blog already has this English title. Please use a different title.')
         if errors:
             for e in errors:
                 messages.error(request, e)
@@ -285,14 +338,34 @@ class BlogAdd(AdminView):
             blog.sequence = Blog.objects.count() + 1
         blog.save()
         messages.success(request, 'Blog saved successfully!')
-        return redirect('superadmin:BlogList')
+        return redirect(self.back_url())
+
+
+def is_empty_html(html):
+    """True when rich-text editor output has no visible text or media."""
+    if not html:
+        return True
+    if '<img' in html or '<iframe' in html:
+        return False
+    return not strip_tags(html).replace('&nbsp;', '').strip()
+
+
+class BlogDetail(AdminView):
+    """Read-only preview of a blog in English and Arabic, as the website will show it."""
+    list_url_name = 'superadmin:BlogList'
+
+    def get(self, request, id):
+        blog = get_object_or_404(Blog.objects.select_related('category'), id=id)
+        return renderhelper(request, 'blogs', 'detail', {'path': 'blogs', 'blog': blog, 'back_url': self.back_url()})
 
 
 class BlogDelete(AdminView):
+    list_url_name = 'superadmin:BlogList'
+
     def post(self, request, id):
         get_object_or_404(Blog, id=id).delete()
         messages.success(request, 'Blog deleted successfully.')
-        return redirect('superadmin:BlogList')
+        return redirect(self.back_url())
 
 
 class EditorImageUpload(AdminView):
@@ -318,7 +391,6 @@ class EditorImageUpload(AdminView):
 def enquiry_queryset(request):
     search = request.GET.get('search', '').strip()
     source = request.GET.get('source', '').strip()
-    read_filter = request.GET.get('read', '').strip()
 
     queryset = Enquiry.objects.all()
     if search:
@@ -328,11 +400,7 @@ def enquiry_queryset(request):
         )
     if source in dict(Enquiry.SOURCE_CHOICES):
         queryset = queryset.filter(source=source)
-    if read_filter == 'unread':
-        queryset = queryset.filter(is_read=False)
-    elif read_filter == 'read':
-        queryset = queryset.filter(is_read=True)
-    return queryset, {'search': search, 'source_filter': source, 'read_filter': read_filter}
+    return queryset, {'search': search, 'source_filter': source}
 
 
 class EnquiryList(AdminView):
@@ -347,36 +415,34 @@ class EnquiryList(AdminView):
         return renderhelper(request, 'enquiries', 'list', context)
 
 
-class EnquiryMarkRead(AdminView):
-    """AJAX: mark an enquiry as read / unread (called when the detail modal is opened)."""
-    def post(self, request, id):
-        is_read = request.POST.get('is_read', 'true').lower() == 'true'
-        updated = Enquiry.objects.filter(id=id).update(is_read=is_read)
-        if not updated:
-            raise Http404
-        clear_sidebar_counts()
-        return JsonResponse({'status': 'success', 'is_read': is_read})
-
-
 class EnquiryDelete(AdminView):
+    list_url_name = 'superadmin:EnquiryList'
+
     def post(self, request, id):
         get_object_or_404(Enquiry, id=id).delete()
         messages.success(request, 'Enquiry deleted successfully.')
-        return redirect('superadmin:EnquiryList')
+        return redirect(self.back_url())
 
 
 class EnquiryExport(AdminView):
     def get(self, request):
-        queryset, _ = enquiry_queryset(request)
-        rows = (
-            (e.id, e.get_source_display(), e.first_name, e.last_name, e.company_name, e.phone, e.email,
-             e.message, e.get_language_display(), 'Yes' if e.is_read else 'No',
-             timezone.localtime(e.created_at).strftime('%d/%m/%Y %I:%M %p'))
-            for e in queryset.iterator(chunk_size=500)
+        queryset, filters = enquiry_queryset(request)
+        queryset = queryset.defer('ip_address')
+
+        def make_row(index, e):
+            return (index, e.full_name, e.email, e.phone, e.company_name, e.message, e.get_source_display(),
+                    e.get_language_display(),
+                    timezone.localtime(e.created_at).strftime('%d/%m/%Y %I:%M %p'))
+
+        headers = ['#', 'Name', 'Email', 'Phone', 'Company', 'Message', 'Source', 'Language', 'Received']
+        applied = [
+            ('Search', filters['search']),
+            ('Source', dict(Enquiry.SOURCE_CHOICES).get(filters['source_filter'], '')),
+        ]
+        return export_response(
+            request, reverse('superadmin:EnquiryList'), queryset, make_row, 'enquiries', 'Website Enquiries', headers,
+            col_widths=[3, 12, 19, 10, 10, 30, 8, 8.5, 10], filters=[f for f in applied if f[1]],
         )
-        headers = ['ID', 'Source', 'First Name', 'Last Name', 'Company', 'Phone', 'Email', 'Message',
-                   'Language', 'Read', 'Submitted At']
-        return excel_response('enquiries', headers, rows)
 
 
 # ── CAREER APPLICATIONS MODULE ──────────────────────────────────────────────
@@ -412,12 +478,15 @@ class CareerApplicationList(AdminView):
 
 
 class CareerApplicationDetail(AdminView):
+    list_url_name = 'superadmin:CareerApplicationList'
+
     def get(self, request, id):
         application = get_object_or_404(CareerApplication, id=id)
         context = {
             'path': 'careers',
             'application': application,
             'status_choices': CareerApplication.STATUS_CHOICES,
+            'back_url': self.back_url(),
         }
         return renderhelper(request, 'careers', 'detail', context)
 
@@ -429,7 +498,9 @@ class CareerApplicationDetail(AdminView):
         application.admin_notes = request.POST.get('admin_notes', '').strip()
         application.save(update_fields=['status', 'admin_notes', 'updated_at'])
         messages.success(request, 'Application updated successfully!')
-        return redirect('superadmin:CareerApplicationDetail', id=id)
+        detail_url = reverse('superadmin:CareerApplicationDetail', args=[id])
+        back = self.back_url()  # keep the list page / filters for the "Back to List" button
+        return redirect(f'{detail_url}?{urlencode({"next": back})}')
 
 
 class CareerApplicationStatus(AdminView):
@@ -441,7 +512,6 @@ class CareerApplicationStatus(AdminView):
         updated = CareerApplication.objects.filter(id=id).update(status=status, updated_at=timezone.now())
         if not updated:
             raise Http404
-        clear_sidebar_counts()
         return JsonResponse({'status': 'success'})
 
 
@@ -462,28 +532,35 @@ class CareerApplicationCV(AdminView):
 
 
 class CareerApplicationDelete(AdminView):
+    list_url_name = 'superadmin:CareerApplicationList'
+
     def post(self, request, id):
         application = get_object_or_404(CareerApplication, id=id)
         application.cv.delete(save=False)
         application.delete()
         messages.success(request, 'Career application deleted successfully.')
-        return redirect('superadmin:CareerApplicationList')
+        return redirect(self.back_url())
 
 
 class CareerApplicationExport(AdminView):
     def get(self, request):
-        queryset, _ = career_queryset(request)
-        base = request.build_absolute_uri('/')[:-1]
-        rows = (
-            (a.id, a.first_name, a.last_name, a.email, a.mobile, a.current_location, a.nationality,
-             a.education, a.degree, a.get_status_display(), a.get_language_display(),
-             f'{base}/superadmin/Career-Application-CV/{a.id}',
-             timezone.localtime(a.created_at).strftime('%d/%m/%Y %I:%M %p'))
-            for a in queryset.iterator(chunk_size=500)
+        queryset, filters = career_queryset(request)
+        queryset = queryset.defer('ip_address', 'cv')
+
+        def make_row(index, a):
+            return (index, a.full_name, a.email, a.mobile, a.current_location, a.nationality, a.education, a.degree,
+                    a.get_status_display(), timezone.localtime(a.created_at).strftime('%d/%m/%Y %I:%M %p'))
+
+        headers = ['#', 'Name', 'Email', 'Mobile', 'Location', 'Nationality', 'Education', 'Degree', 'Status', 'Applied']
+        applied = [
+            ('Search', filters['search']),
+            ('Status', dict(CareerApplication.STATUS_CHOICES).get(filters['status_filter'], '')),
+            ('Education', filters['education_filter']),
+        ]
+        return export_response(
+            request, reverse('superadmin:CareerApplicationList'), queryset, make_row, 'career_applications',
+            'Career Applications', headers, col_widths=[3, 13, 17, 11, 10, 9, 10, 14, 7, 11], filters=[f for f in applied if f[1]],
         )
-        headers = ['ID', 'First Name', 'Last Name', 'Email', 'Mobile', 'Current Location', 'Nationality',
-                   'Education', 'Degree', 'Status', 'Language', 'CV Link', 'Applied At']
-        return excel_response('career_applications', headers, rows)
 
 
 # ── PROFILE ─────────────────────────────────────────────────────────────────

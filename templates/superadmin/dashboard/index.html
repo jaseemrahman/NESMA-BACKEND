@@ -69,10 +69,10 @@
                 </div>
 
                 <div class="col-sm-6 col-md-3">
-                    <a href="{% url 'superadmin:EnquiryList' %}?read=unread" class="dashstat-tile h-100" style="display:block;text-decoration:none; background: linear-gradient(135deg, #F43F5E, #FB7185); color:#fff;">
+                    <a href="{% url 'superadmin:EnquiryList' %}" class="dashstat-tile h-100" style="display:block;text-decoration:none; background: linear-gradient(135deg, #F43F5E, #FB7185); color:#fff;">
                         <div class="tile-icon-wrap"><i class="fas fa-headset"></i></div>
-                        <div class="tile-count">{{ enquiry_stats.unread }}<small style="font-size:13px; opacity:.8;"> / {{ enquiry_stats.total }}</small></div>
-                        <div class="tile-label">Unread Enquiries</div>
+                        <div class="tile-count">{{ enquiry_stats.total }}</div>
+                        <div class="tile-label">Total Enquiries</div>
                     </a>
                 </div>
 
@@ -135,7 +135,7 @@
                                         {% for e in recent_enquiries %}
                                         <tr>
                                             <td class="ps-0 fw-bold" style="color: #1E293B;">
-                                                <div>{{ e.full_name }} {% if not e.is_read %}<span class="badge bg-primary ms-1" style="font-size:9px;">NEW</span>{% endif %}</div>
+                                                <div>{{ e.full_name }}</div>
                                                 <small class="text-muted fw-normal" style="font-size: 11px;">{{ e.email }}</small>
                                             </td>
                                             <td><span class="badge bg-light text-dark border">{{ e.get_source_display }}</span></td>
@@ -214,14 +214,14 @@
                     </a>
                 </div>
                 <div class="col-md-4">
-                    <a href="{% url 'superadmin:EnquiryExport' %}" class="btn w-100 text-start p-3 rounded-3 d-flex align-items-center justify-content-between" style="background: #fff; border: 1px solid #E2E8F0; color: #1E293B; font-weight: 600; font-size: 13.5px;">
-                        <span><i class="fas fa-file-excel me-2 text-success"></i>Export Enquiries</span>
+                    <a href="{% url 'superadmin:BlogCategoryAdd' %}" class="btn w-100 text-start p-3 rounded-3 d-flex align-items-center justify-content-between" style="background: #fff; border: 1px solid #E2E8F0; color: #1E293B; font-weight: 600; font-size: 13.5px;">
+                        <span><i class="fas fa-tags me-2" style="color:#2E368F;"></i>Add Blog Category</span>
                         <i class="fas fa-chevron-right text-muted" style="font-size: 12px;"></i>
                     </a>
                 </div>
                 <div class="col-md-4">
-                    <a href="{% url 'superadmin:CareerApplicationExport' %}" class="btn w-100 text-start p-3 rounded-3 d-flex align-items-center justify-content-between" style="background: #fff; border: 1px solid #E2E8F0; color: #1E293B; font-weight: 600; font-size: 13.5px;">
-                        <span><i class="fas fa-file-excel me-2 text-success"></i>Export Career Applications</span>
+                    <a href="{% url 'superadmin:CareerApplicationList' %}?status=new" class="btn w-100 text-start p-3 rounded-3 d-flex align-items-center justify-content-between" style="background: #fff; border: 1px solid #E2E8F0; color: #1E293B; font-weight: 600; font-size: 13.5px;">
+                        <span><i class="fas fa-user-check me-2" style="color:#2E368F;"></i>Review New Applications</span>
                         <i class="fas fa-chevron-right text-muted" style="font-size: 12px;"></i>
                     </a>
                 </div>

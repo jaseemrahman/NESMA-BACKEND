@@ -24,14 +24,14 @@
                             <input type="text" name="search" class="form-control filter-input" placeholder="Search title (English / Arabic)..." value="{{ search }}">
                         </div>
                         <div class="col-12 col-md-3">
-                            <select name="status" class="form-select filter-select auto-submit-select">
+                            <select name="status" class="form-select filter-select">
                                 <option value="active" {% if status_filter == 'active' %}selected{% endif %}>ACTIVE</option>
                                 <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>INACTIVE</option>
                                 <option value="all" {% if status_filter == 'all' %}selected{% endif %}>ALL STATUS</option>
                             </select>
                         </div>
                         <div class="col-12 col-md-3">
-                            <select name="category" class="form-select filter-select auto-submit-select">
+                            <select name="category" class="form-select filter-select">
                                 <option value="">ALL CATEGORIES</option>
                                 {% for c in categories %}
                                 <option value="{{ c.id }}" {% if category_filter == c.id|stringformat:'s' %}selected{% endif %}>{{ c.name|upper }}</option>
@@ -50,7 +50,7 @@
             <div class="row">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-body">
+                        <div class="card-body" id="ajax-list">
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle">
                                     <thead>
@@ -69,18 +69,17 @@
                                     </thead>
                                     <tbody>
                                         {% for blog in blogs %}
-                                        <tr>
+                                        <tr class="row-link" data-href="{% url 'superadmin:BlogDetail' blog.id %}" title="Open blog details">
                                             <td class="text-center font-weight-bold text-secondary">{{ blogs.start_index|add:forloop.counter0 }}</td>
                                             <td>
                                                 {% if blog.image %}
-                                                <img src="{{ blog.image.url }}" class="preview-img-clickable" loading="lazy" style="width:56px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" title="Click to view large image">
+                                                <img src="{% if blog.thumbnail %}{{ blog.thumbnail.url }}{% else %}{{ blog.image.url }}{% endif %}" data-full="{{ blog.image.url }}" class="preview-img-clickable" loading="lazy" decoding="async" width="56" height="40" alt="" style="width:56px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" title="Click to view large image">
                                                 {% else %}
                                                 <span class="badge bg-secondary">No Image</span>
                                                 {% endif %}
                                             </td>
                                             <td style="font-weight:600; max-width:320px;">
                                                 {{ blog.title|truncatechars:70 }}
-                                                <div><small class="text-muted fw-normal">/media/{{ blog.slug }}</small></div>
                                             </td>
                                             <td><span class="badge bg-light border" style="color:#2E368F; border-color:#2E368F !important;">{{ blog.category.name }}</span></td>
                                             <td style="font-size:13px; color:#64748B;">{{ blog.location|default:"-" }}</td>
@@ -106,7 +105,7 @@
                                             </td>
                                             <td class="text-center">
                                                 <div class="action-buttons-wrap">
-                                                    <a href="{% url 'superadmin:BlogEdit' blog.id %}" class="btn-action-edit" title="Edit">
+                                                    <a href="{% url 'superadmin:BlogEdit' blog.id %}" class="btn-action-edit keep-place" title="Edit">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                     <button type="button" class="btn-action-delete trigger-delete-modal" data-name="{{ blog.title }}" data-url="{% url 'superadmin:BlogDelete' blog.id %}" title="Delete">
