@@ -1,0 +1,138 @@
+{% load static %}
+{% include "superadmin/layout/header.html" %}
+
+<div class="main-content app-content mt-0">
+    <div class="side-app">
+        <div class="main-container container-fluid">
+
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title"><i class="fas fa-newspaper me-2"></i>Blogs</h1>
+                </div>
+                <div>
+                    <a href="{% url 'superadmin:BlogAdd' %}" class="btn btn-light" style="border-radius:12px; font-weight:600; color:#2E368F;">
+                        <i class="fas fa-plus me-1"></i> Add Blog
+                    </a>
+                </div>
+            </div>
+
+            <!-- SEARCH & STATUS FILTER BAR -->
+            <div class="card mb-4 border-0 bg-transparent shadow-none">
+                <div class="card-body p-0">
+                    <form method="GET" class="row g-2 align-items-center filter-form">
+                        <div class="col-12 col-md-5">
+                            <input type="text" name="search" class="form-control filter-input" placeholder="Search title (English / Arabic)..." value="{{ search }}">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <select name="status" class="form-select filter-select auto-submit-select">
+                                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>ACTIVE</option>
+                                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>INACTIVE</option>
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>ALL STATUS</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <select name="category" class="form-select filter-select auto-submit-select">
+                                <option value="">ALL CATEGORIES</option>
+                                {% for c in categories %}
+                                <option value="{{ c.id }}" {% if category_filter == c.id|stringformat:'s' %}selected{% endif %}>{{ c.name|upper }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-auto ms-auto ms-md-0">
+                            <a href="{% url 'superadmin:BlogList' %}" class="btn btn-light btn-reset-filter" title="Reset Filters">
+                                <i class="fas fa-sync-alt"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">Sl No</th>
+                                            <th>Image</th>
+                                            <th>Title</th>
+                                            <th>Category</th>
+                                            <th>Location</th>
+                                            <th>Date</th>
+                                            <th class="text-center">Arabic</th>
+                                            <th class="text-center" style="width:90px;">Sequence</th>
+                                            <th class="text-center" style="font-weight:700; font-size:12px; color:#0284C7; letter-spacing:0.05em;">STATUS</th>
+                                            <th class="text-center" style="font-weight:700; font-size:12px; color:#1A5276; letter-spacing:0.05em;">ACTION</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for blog in blogs %}
+                                        <tr>
+                                            <td class="text-center font-weight-bold text-secondary">{{ blogs.start_index|add:forloop.counter0 }}</td>
+                                            <td>
+                                                {% if blog.image %}
+                                                <img src="{{ blog.image.url }}" class="preview-img-clickable" loading="lazy" style="width:56px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" title="Click to view large image">
+                                                {% else %}
+                                                <span class="badge bg-secondary">No Image</span>
+                                                {% endif %}
+                                            </td>
+                                            <td style="font-weight:600; max-width:320px;">
+                                                {{ blog.title|truncatechars:70 }}
+                                                <div><small class="text-muted fw-normal">/media/{{ blog.slug }}</small></div>
+                                            </td>
+                                            <td><span class="badge bg-light border" style="color:#2E368F; border-color:#2E368F !important;">{{ blog.category.name }}</span></td>
+                                            <td style="font-size:13px; color:#64748B;">{{ blog.location|default:"-" }}</td>
+                                            <td style="font-size:13px; color:#64748B; white-space:nowrap;">{{ blog.date|date:"d/m/Y" }}</td>
+                                            <td class="text-center">
+                                                {% if blog.title_ar %}
+                                                <i class="fas fa-check-circle text-success" title="{{ blog.title_ar }}"></i>
+                                                {% else %}
+                                                <i class="fas fa-minus-circle text-muted" title="Arabic content missing"></i>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center">
+                                                <select class="form-select sequence-select" data-model="Blog" data-id="{{ blog.id }}">
+                                                    {% for seq in sequence_range %}
+                                                    <option value="{{ seq }}" {% if blog.sequence == seq %}selected{% endif %}>{{ seq }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="form-check form-switch d-flex align-items-center justify-content-center m-0">
+                                                    <input type="checkbox" class="form-check-input status-toggle-switch" data-model="Blog" data-id="{{ blog.id }}" {% if blog.is_active %}checked{% endif %}>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="action-buttons-wrap">
+                                                    <a href="{% url 'superadmin:BlogEdit' blog.id %}" class="btn-action-edit" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button type="button" class="btn-action-delete trigger-delete-modal" data-name="{{ blog.title }}" data-url="{% url 'superadmin:BlogDelete' blog.id %}" title="Delete">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="10" class="text-center text-muted py-4">No blogs found.</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {% include "superadmin/layout/pagination.html" with page_obj=blogs %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% include "superadmin/layout/footer.html" %}

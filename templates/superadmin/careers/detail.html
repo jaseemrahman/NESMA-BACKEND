@@ -1,0 +1,104 @@
+{% load static %}
+{% include "superadmin/layout/header.html" %}
+
+<div class="main-content app-content mt-0">
+    <div class="side-app">
+        <div class="main-container container-fluid">
+
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title"><i class="fas fa-user-tie me-2"></i>{{ application.full_name }}</h1>
+                </div>
+                <div>
+                    <a href="{% url 'superadmin:CareerApplicationList' %}" class="btn btn-light" style="border-radius:12px;">
+                        <i class="fas fa-arrow-left me-1"></i> Back to List
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Applicant details -->
+                <div class="col-12 col-lg-7">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-4" style="color:#0F172A;">Applicant Details</h5>
+                            <div class="table-responsive">
+                                <table class="table table-borderless mb-0" style="font-size:14px;">
+                                    <tbody>
+                                        <tr><td class="text-muted" style="width:200px;">First Name</td><td class="fw-bold">{{ application.first_name }}</td></tr>
+                                        <tr><td class="text-muted">Last Name</td><td class="fw-bold">{{ application.last_name|default:"-" }}</td></tr>
+                                        <tr><td class="text-muted">Email</td><td><a href="mailto:{{ application.email }}" style="color:#2E368F;">{{ application.email }}</a></td></tr>
+                                        <tr><td class="text-muted">Mobile</td><td><a href="tel:{{ application.mobile }}" style="color:#2E368F;">{{ application.mobile }}</a></td></tr>
+                                        <tr><td class="text-muted">Current Location</td><td>{{ application.current_location }}</td></tr>
+                                        <tr><td class="text-muted">Nationality</td><td>{{ application.nationality|default:"-" }}</td></tr>
+                                        <tr><td class="text-muted">Education</td><td>{{ application.education }}</td></tr>
+                                        <tr><td class="text-muted">Degree</td><td>{{ application.degree }}</td></tr>
+                                        <tr><td class="text-muted">Submitted Language</td><td>{{ application.get_language_display }}</td></tr>
+                                        <tr><td class="text-muted">Applied On</td><td>{{ application.created_at|date:"l, d F Y h:i A" }}</td></tr>
+                                        <tr><td class="text-muted">IP Address</td><td>{{ application.ip_address|default:"-" }}</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {% if application.cv %}
+                            <div class="current-file-box mt-4">
+                                <div class="current-file-info">
+                                    <div class="current-file-thumbnail d-flex align-items-center justify-content-center bg-light">
+                                        <i class="fas fa-file-alt fa-lg" style="color:#2E368F;"></i>
+                                    </div>
+                                    <span class="current-file-text"><strong>Curriculum Vitae</strong> &middot; {{ application.cv_filename }}</span>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'superadmin:CareerApplicationCV' application.id %}" target="_blank" class="current-file-btn"><i class="fas fa-external-link-alt me-1"></i>View</a>
+                                    <a href="{% url 'superadmin:CareerApplicationCV' application.id %}?download=1" class="current-file-btn"><i class="fas fa-download me-1"></i>Download</a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review panel -->
+                <div class="col-12 col-lg-5">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-4" style="color:#0F172A;">Review</h5>
+                            <form method="POST">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label class="form-label" style="font-weight:600;">Status</label>
+                                    <select name="status" class="form-select">
+                                        {% for value, label in status_choices %}
+                                        <option value="{{ value }}" {% if application.status == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" style="font-weight:600;">Internal Notes</label>
+                                    <textarea name="admin_notes" class="form-control" rows="6" placeholder="Interview feedback, follow-ups...">{{ application.admin_notes }}</textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100" style="border-radius:12px; font-weight:600;">
+                                    <i class="fas fa-save me-1"></i> Save Review
+                                </button>
+                            </form>
+
+                            <hr class="my-4">
+
+                            <div class="d-flex gap-2">
+                                <a href="mailto:{{ application.email }}?subject=Your application at Nesma Infrastructure %26 Technology" class="btn btn-light flex-fill" style="border-radius:12px; font-weight:600;">
+                                    <i class="fas fa-reply me-1"></i> Email Applicant
+                                </a>
+                                <button type="button" class="btn btn-outline-danger trigger-delete-modal" style="border-radius:12px; font-weight:600;" data-name="{{ application.full_name }}" data-url="{% url 'superadmin:CareerApplicationDelete' application.id %}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% include "superadmin/layout/footer.html" %}

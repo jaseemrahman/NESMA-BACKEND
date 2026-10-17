@@ -1,0 +1,152 @@
+{% load static %}
+{% include "superadmin/layout/header.html" %}
+
+<div class="main-content app-content mt-0">
+    <div class="side-app">
+        <div class="main-container container-fluid">
+
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title"><i class="fas fa-user-tie me-2"></i>Career Applications</h1>
+                </div>
+                <div>
+                    <a href="{% url 'superadmin:CareerApplicationExport' %}?{{ request.GET.urlencode }}" class="btn btn-light" style="border-radius:12px; font-weight:600; color:#2E368F;">
+                        <i class="fas fa-file-excel me-1"></i> Export Excel
+                    </a>
+                </div>
+            </div>
+
+            <!-- FILTER BAR -->
+            <div class="card mb-4 border-0 bg-transparent shadow-none">
+                <div class="card-body p-0">
+                    <form method="GET" class="row g-2 align-items-center filter-form">
+                        <div class="col-12 col-md-5">
+                            <input type="text" name="search" class="form-control filter-input" placeholder="Search name, email, mobile, degree, location..." value="{{ search }}">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <select name="status" class="form-select filter-select auto-submit-select">
+                                <option value="">ALL STATUS</option>
+                                {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label|upper }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <select name="education" class="form-select filter-select auto-submit-select">
+                                <option value="">ALL EDUCATION</option>
+                                {% for value, label in education_choices %}
+                                <option value="{{ value }}" {% if education_filter == value %}selected{% endif %}>{{ label|upper }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-auto ms-auto ms-md-0">
+                            <a href="{% url 'superadmin:CareerApplicationList' %}" class="btn btn-light btn-reset-filter" title="Reset Filters">
+                                <i class="fas fa-sync-alt"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">Sl No</th>
+                                            <th>Applicant</th>
+                                            <th>Contact</th>
+                                            <th>Location / Nationality</th>
+                                            <th>Education</th>
+                                            <th class="text-center">CV</th>
+                                            <th style="width:160px;">Status</th>
+                                            <th>Applied</th>
+                                            <th class="text-center" style="font-weight:700; font-size:12px; color:#1A5276; letter-spacing:0.05em;">ACTION</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for a in applications %}
+                                        <tr class="{% if a.status == 'new' %}row-unread{% endif %}">
+                                            <td class="text-center font-weight-bold text-secondary">{{ applications.start_index|add:forloop.counter0 }}</td>
+                                            <td style="font-weight:600;">
+                                                <a href="{% url 'superadmin:CareerApplicationDetail' a.id %}" style="color:#1E293B;">{{ a.full_name }}</a>
+                                                {% if a.language == 'ar' %}<span class="badge bg-light text-dark border ms-1" style="font-size:10px;">AR</span>{% endif %}
+                                            </td>
+                                            <td style="font-size:13px;">
+                                                <a href="mailto:{{ a.email }}" style="color:#2E368F;">{{ a.email }}</a>
+                                                <div><a href="tel:{{ a.mobile }}" class="text-muted">{{ a.mobile }}</a></div>
+                                            </td>
+                                            <td style="font-size:13px; color:#475569;">
+                                                {{ a.current_location }}
+                                                <div class="text-muted">{{ a.nationality|default:"-" }}</div>
+                                            </td>
+                                            <td style="font-size:13px; color:#475569;">
+                                                {{ a.education }}
+                                                <div class="text-muted">{{ a.degree|truncatechars:40 }}</div>
+                                            </td>
+                                            <td class="text-center">
+                                                {% if a.cv %}
+                                                <a href="{% url 'superadmin:CareerApplicationCV' a.id %}" target="_blank" class="btn btn-sm btn-outline-primary p-2" style="border-radius:10px;" title="View CV">
+                                                    <i class="fas fa-file-alt fa-lg"></i>
+                                                </a>
+                                                {% else %}-{% endif %}
+                                            </td>
+                                            <td>
+                                                <select class="form-select form-select-sm application-status-select" data-url="{% url 'superadmin:CareerApplicationStatus' a.id %}" style="border-radius:10px; font-size:12px; font-weight:600;">
+                                                    {% for value, label in status_choices %}
+                                                    <option value="{{ value }}" {% if a.status == value %}selected{% endif %}>{{ label }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                            <td style="font-size:12px; color:#64748B; white-space:nowrap;">
+                                                {{ a.created_at|date:"d/m/Y" }}<div>{{ a.created_at|date:"h:i A" }}</div>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="action-buttons-wrap">
+                                                    <a href="{% url 'superadmin:CareerApplicationDetail' a.id %}" class="btn-action-edit" title="View details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <button type="button" class="btn-action-delete trigger-delete-modal" data-name="{{ a.full_name }}" data-url="{% url 'superadmin:CareerApplicationDelete' a.id %}" title="Delete">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="9" class="text-center text-muted py-4">No career applications found.</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {% include "superadmin/layout/pagination.html" with page_obj=applications %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% include "superadmin/layout/footer.html" %}
+
+<script>
+    // Quick status change without leaving the list
+    $(document).on('change', '.application-status-select', function() {
+        var select = $(this);
+        $.post(select.data('url'), {'status': select.val(), 'csrfmiddlewaretoken': '{{ csrf_token }}'})
+            .done(function() {
+                select.closest('tr').toggleClass('row-unread', select.val() === 'new');
+                var $t = $('<div class="sa-toast toast-success"><i class="fas fa-check-circle"></i><div class="sa-toast-content"><p>Status updated successfully!</p></div></div>').appendTo('.global-toast-container');
+                setTimeout(function() { $t.addClass('fade-out'); setTimeout(function() { $t.remove(); }, 400); }, 3000);
+            })
+            .fail(function() { alert('Failed to update status.'); });
+    });
+</script>

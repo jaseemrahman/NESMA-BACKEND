@@ -1,0 +1,231 @@
+{% load static %}
+{% include "superadmin/layout/header.html" %}
+
+<div class="main-content app-content mt-0">
+    <div class="side-app">
+        <div class="main-container container-fluid">
+
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">{% if blog.pk %}Edit Blog{% else %}Add Blog{% endif %}</h1>
+                </div>
+                <div>
+                    <a href="{% url 'superadmin:BlogList' %}" class="btn btn-light" style="border-radius:12px;">
+                        <i class="fas fa-arrow-left me-1"></i> Back to List
+                    </a>
+                </div>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="blogForm">
+                {% csrf_token %}
+                <div class="row">
+
+                    <!-- LEFT: Bilingual content -->
+                    <div class="col-12 col-xl-8">
+                        <div class="card">
+                            <div class="card-body">
+                                <ul class="nav nav-pills lang-tabs mb-4 gap-2" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-en" type="button" role="tab">
+                                            <i class="fas fa-language me-1"></i> English <span class="text-danger">*</span>
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-ar" type="button" role="tab">
+                                            <i class="fas fa-language me-1"></i> العربية (Arabic)
+                                        </button>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content">
+                                    <!-- ENGLISH -->
+                                    <div class="tab-pane fade show active" id="tab-en" role="tabpanel">
+                                        <div class="mb-3">
+                                            <label class="form-label" style="font-weight:600;">Title <span class="text-danger">*</span></label>
+                                            <input type="text" name="title" class="form-control" maxlength="255" value="{{ blog.title|default:'' }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label" style="font-weight:600;">Location</label>
+                                            <input type="text" name="location" class="form-control" maxlength="150" placeholder="e.g. Riyadh, Saudi Arabia" value="{{ blog.location|default:'' }}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label" style="font-weight:600;">Short Description <small class="text-muted fw-normal">(listing card / SEO)</small></label>
+                                            <textarea name="short_description" class="form-control" rows="3">{{ blog.short_description|default:'' }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label" style="font-weight:600;">Content <span class="text-danger">*</span></label>
+                                            <textarea name="content" class="form-control rich-editor">{{ blog.content|default:'' }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- ARABIC -->
+                                    <div class="tab-pane fade" id="tab-ar" role="tabpanel" dir="rtl">
+                                        <div class="alert alert-light border mb-3" dir="ltr" style="font-size:12.5px;">
+                                            <i class="fas fa-info-circle me-1" style="color:#2E368F;"></i>
+                                            Any Arabic field left empty falls back to the English value on the Arabic website.
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label ar-text" style="font-weight:600;">العنوان</label>
+                                            <input type="text" name="title_ar" class="form-control ar-input" dir="rtl" maxlength="255" value="{{ blog.title_ar|default:'' }}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label ar-text" style="font-weight:600;">الموقع</label>
+                                            <input type="text" name="location_ar" class="form-control ar-input" dir="rtl" maxlength="150" placeholder="مثال: الرياض، المملكة العربية السعودية" value="{{ blog.location_ar|default:'' }}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label ar-text" style="font-weight:600;">وصف مختصر</label>
+                                            <textarea name="short_description_ar" class="form-control ar-input" dir="rtl" rows="3">{{ blog.short_description_ar|default:'' }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label ar-text" style="font-weight:600;">المحتوى</label>
+                                            <textarea name="content_ar" class="form-control rich-editor rich-editor-ar">{{ blog.content_ar|default:'' }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: Meta -->
+                    <div class="col-12 col-xl-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label" style="font-weight:600;">Category <span class="text-danger">*</span></label>
+                                    <select name="category" class="form-select" required>
+                                        <option value="">-- Select Category --</option>
+                                        {% for c in categories %}
+                                        <option value="{{ c.id }}" {% if blog.category_id == c.id %}selected{% endif %}>{{ c.name }}{% if c.name_ar %} / {{ c.name_ar }}{% endif %}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" style="font-weight:600;">Date <span class="text-danger">*</span></label>
+                                    <input type="date" name="date" class="form-control" value="{% if blog.date %}{{ blog.date|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" style="font-weight:600;">URL Slug</label>
+                                    <input type="text" name="slug" class="form-control" maxlength="255" placeholder="auto-generated from title" value="{{ blog.slug|default:'' }}">
+                                    <small class="text-muted">Website URL: <code>/media/<span id="slugPreview">{{ blog.slug|default:'...' }}</span></code></small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+                                        <div class="card-header bg-light border-bottom-0 py-3">
+                                            <h6 class="mb-0" style="font-weight: 700;">Featured Image <span class="text-danger">*</span></h6>
+                                        </div>
+                                        <div class="card-body bg-white text-center p-3">
+                                            <div class="image-upload-wrap position-relative" style="border: 2px dashed #cbd5e1; border-radius: 16px; padding: 16px; background: #f8fafc; cursor: pointer; min-height: 190px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                                <input type="file" name="image" class="file-upload-input position-absolute w-100 h-100" style="opacity: 0; left: 0; top: 0; cursor: pointer; z-index: 10;" accept="image/png,image/jpeg,image/webp" {% if not blog.pk %}required{% endif %}>
+
+                                                <div class="preview-container w-100 h-100" style="{% if not blog.pk or not blog.image %}display: none;{% endif %} position: relative; z-index: 5;">
+                                                    <img class="img-preview" src="{% if blog.pk and blog.image %}{{ blog.image.url }}{% endif %}" style="max-height: 220px; max-width: 100%; object-fit: contain; border-radius: 8px;">
+                                                </div>
+
+                                                <div class="placeholder-container" style="{% if blog.pk and blog.image %}display: none;{% endif %} position: relative; z-index: 5;">
+                                                    <i class="fas fa-cloud-upload-alt text-muted mb-2" style="font-size: 40px;"></i>
+                                                    <h6 class="text-muted font-weight-bold">Click to upload or drag and drop</h6>
+                                                    <p class="text-muted small mb-0">PNG, JPG or WEBP &middot; optimised without quality loss</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" style="font-weight:600;">SEO Meta Title</label>
+                                    <input type="text" name="meta_title" class="form-control" maxlength="255" placeholder="defaults to title" value="{{ blog.meta_title|default:'' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" style="font-weight:600;">SEO Meta Description</label>
+                                    <textarea name="meta_description" class="form-control" rows="3" maxlength="500" placeholder="defaults to short description">{{ blog.meta_description|default:'' }}</textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100" style="border-radius:12px; font-weight:600; padding:11px;">
+                                    <i class="fas fa-save me-1"></i> Save Blog
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+{% include "superadmin/layout/footer.html" %}
+
+<!-- Summernote Rich Text Editor -->
+<script src="{% static 'superadmin/assets/plugins/summernote/summernote1.js' %}"></script>
+<script>
+    $(document).ready(function() {
+        var toolbar = [
+            ['style', ['style']],
+            ['font', ['bold', 'italic', 'underline', 'clear']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['table', ['table']],
+            ['insert', ['link', 'picture', 'video']],
+            ['view', ['fullscreen', 'codeview']]
+        ];
+        // Upload editor images to media storage instead of embedding base64 in the HTML
+        function uploadEditorImages(files, $editor) {
+            $.each(files, function(i, file) {
+                var data = new FormData();
+                data.append('file', file);
+                data.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                $.ajax({
+                    url: "{% url 'superadmin:EditorImageUpload' %}", type: 'POST', data: data,
+                    processData: false, contentType: false,
+                    success: function(res) { $editor.summernote('insertImage', res.url); },
+                    error: function(xhr) { alert((xhr.responseJSON && xhr.responseJSON.message) || 'Image upload failed.'); }
+                });
+            });
+        }
+        $('textarea[name="content"]').summernote({
+            height: 360, tabsize: 2, toolbar: toolbar,
+            callbacks: { onImageUpload: function(files) { uploadEditorImages(files, $(this)); } }
+        });
+        $('textarea[name="content_ar"]').summernote({
+            height: 360, tabsize: 2, toolbar: toolbar,
+            callbacks: {
+                onInit: function() {
+                    $(this).next('.note-editor').find('.note-editable').attr('dir', 'rtl').addClass('ar-text');
+                },
+                onImageUpload: function(files) { uploadEditorImages(files, $(this)); }
+            }
+        });
+
+        // Live slug preview
+        function slugify(v) {
+            return v.toString().toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+        }
+        var $slug = $('input[name="slug"]');
+        var slugTouched = $slug.val() !== '';
+        $slug.on('input', function() { slugTouched = true; $('#slugPreview').text(slugify($(this).val()) || '...'); });
+        $('input[name="title"]').on('input', function() {
+            if (!slugTouched) { $('#slugPreview').text(slugify($(this).val()) || '...'); }
+        });
+
+        // Show the tab that holds an invalid field so the browser can focus it
+        $('#blogForm').find('input, select, textarea').on('invalid', function() {
+            var pane = $(this).closest('.tab-pane');
+            if (pane.length && !pane.hasClass('active')) {
+                bootstrap.Tab.getOrCreateInstance(document.querySelector('[data-bs-target="#' + pane.attr('id') + '"]')).show();
+            }
+        });
+
+        // Jump to the English tab when a required field there is empty
+        $('#blogForm').on('submit', function(e) {
+            if ($('textarea[name="content"]').summernote('isEmpty')) {
+                e.preventDefault();
+                bootstrap.Tab.getOrCreateInstance(document.querySelector('[data-bs-target="#tab-en"]')).show();
+                alert('Content (English) is required.');
+            }
+        });
+    });
+</script>

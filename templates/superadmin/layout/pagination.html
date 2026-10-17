@@ -1,0 +1,24 @@
+{% load admin_tags %}
+{% if page_obj.has_other_pages %}
+<div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top flex-wrap gap-2">
+    <small class="text-muted">Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} total entries</small>
+    <ul class="pagination pagination-sm m-0">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="{% url_with_page page_obj.previous_page_number %}">Previous</a></li>
+        {% endif %}
+        {% elided_page_range page_obj as page_range %}
+        {% for i in page_range %}
+            {% if i == page_obj.number %}
+            <li class="page-item active"><span class="page-link" style="background:#2E368F; border-color:#2E368F;">{{ i }}</span></li>
+            {% elif i == page_obj.paginator.ELLIPSIS %}
+            <li class="page-item disabled"><span class="page-link">{{ i }}</span></li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="{% url_with_page i %}">{{ i }}</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="{% url_with_page page_obj.next_page_number %}">Next</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}

@@ -1,0 +1,441 @@
+{% load static %}
+    <!-- FOOTER SECTION -->
+    <footer class="footer mt-auto py-3 bg-white text-center border-top">
+        <div class="container-fluid d-flex align-items-center justify-content-center">
+            <span class="crafted-by-text">
+                DESIGNED AND DEVELOPED BY <a href="https://www.zuarak.com" target="_blank" class="zuarak-credit-link">ZUARAK</a>
+            </span>
+        </div>
+    </footer>
+
+    <!-- BACK-TO-TOP -->
+    <a href="#top" id="back-to-top"><i class="fa fa-angle-up"></i></a>
+
+    <!-- GLOBAL TOAST CONTAINER -->
+    <div class="global-toast-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="sa-toast toast-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}" id="toast-{{ forloop.counter }}">
+                    <i class="fas {% if message.tags == 'error' %}fa-times-circle{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %}"></i>
+                    <div class="sa-toast-content">
+                        <p>{{ message }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- GLOBAL DELETE CONFIRMATION MODAL -->
+    <div class="modal fade" id="globalDeleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content style-modal" style="border-radius:16px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title font-weight-bold" style="color:#0F172A;">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-3 text-start">
+                    <p class="mb-1" style="font-size:15px; color:#334155;">Are you sure you want to permanently delete this item?</p>
+                    <strong id="globalDeleteTargetName" style="color:#0F172A; font-size:15px;"></strong>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:10px;">Cancel</button>
+                    <form method="post" action="#" id="globalDeleteForm" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger" style="border-radius:10px;">Confirm Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOBAL LARGE IMAGE PREVIEW MODAL -->
+    <div class="modal fade" id="globalImageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content style-modal" style="border-radius:16px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title font-weight-bold" style="color:#0F172A;">Image Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3 text-center">
+                    <img src="" id="globalImagePreview" class="img-fluid rounded-3" style="max-height:75vh; object-fit:contain;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOBAL DETAIL TEXT MODAL -->
+    <div class="modal fade" id="globalDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content style-modal" style="border-radius:16px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title font-weight-bold" id="globalDetailTitle" style="color:#0F172A;">Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-3 text-start">
+                    <div id="globalDetailContent" style="font-size:14px; color:#334155; line-height:1.6; white-space:pre-wrap; max-height:400px; overflow-y:auto;"></div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius:10px;">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JQUERY JS -->
+    <script src="{% static 'superadmin/assets/js/jquery.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Auto-hide messages
+            $('.sa-toast').each(function(index) {
+                var element = $(this);
+                setTimeout(function() {
+                    element.addClass('fade-out');
+                    setTimeout(function() {
+                        element.remove();
+                    }, 500);
+                }, 4000 + (index * 500));
+            });
+        });
+    </script>
+
+    <!-- BOOTSTRAP JS -->
+    <script src="{% static 'superadmin/assets/plugins/bootstrap/js/popper.min.js' %}"></script>
+    <script src="{% static 'superadmin/assets/plugins/bootstrap/js/bootstrap.min.js' %}"></script>
+
+    <!-- SIDE-MENU JS-->
+    <script src="{% static 'superadmin/assets/plugins/sidemenu/sidemenu.js' %}"></script>
+
+    <!-- Sticky js -->
+    <script src="{% static 'superadmin/assets/js/sticky.js' %}"></script>
+
+    <!-- SIDEBAR JS -->
+    <script src="{% static 'superadmin/assets/plugins/sidebar/sidebar.js' %}"></script>
+
+    <!-- Perfect SCROLLBAR JS-->
+    <script src="{% static 'superadmin/assets/plugins/p-scroll/perfect-scrollbar.js' %}"></script>
+    <script src="{% static 'superadmin/assets/plugins/p-scroll/pscroll.js' %}"></script>
+
+    <!-- CUSTOM JS -->
+    <script src="{% static 'superadmin/assets/js/custom.js' %}"></script>
+
+<script>
+$(document).ready(function() {
+    // Helper function for dynamic bottom-right sticky toast notification
+    function showToast(message, type) {
+        type = type || 'success';
+        var iconClass = (type === 'success') ? 'fa-check-circle' : (type === 'error' ? 'fa-times-circle' : 'fa-info-circle');
+        var toastHtml = '<div class="sa-toast toast-' + type + '">' +
+                            '<i class="fas ' + iconClass + '"></i>' +
+                            '<div class="sa-toast-content"><p>' + message + '</p></div>' +
+                        '</div>';
+        var $toast = $(toastHtml).appendTo('.global-toast-container');
+        setTimeout(function() {
+            $toast.addClass('fade-out');
+            setTimeout(function() { $toast.remove(); }, 400);
+        }, 3500);
+    }
+
+    // Global Status Toggle Switch Handler
+    $(document).on('change', '.status-toggle-switch', function() {
+        var checkbox = $(this);
+        var modelName = checkbox.data('model');
+        var objectId = checkbox.data('id');
+        var isChecked = checkbox.is(':checked');
+
+        $.ajax({
+            url: "{% url 'superadmin:StatusToggle' %}",
+            type: "POST",
+            data: {
+                'model_name': modelName,
+                'id': objectId,
+                'status': isChecked,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if(response.status === 'success') {
+                    showToast('Status updated successfully!', 'success');
+                }
+            },
+            error: function(err) {
+                checkbox.prop('checked', !isChecked);
+                showToast('Failed to update status.', 'error');
+            }
+        });
+    });
+
+    // Sequence Dropdown AJAX Handler
+    $(document).on('change', '.sequence-select', function() {
+        var select = $(this);
+        var modelName = select.data('model');
+        var objectId = select.data('id');
+        var seqVal = select.val();
+
+        $.ajax({
+            url: "{% url 'superadmin:SequenceUpdate' %}",
+            type: "POST",
+            data: {
+                'model_name': modelName,
+                'id': objectId,
+                'sequence': seqVal,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if(response.status === 'success') {
+                    showToast('Sequence updated successfully!', 'success');
+                }
+            },
+            error: function() {
+                showToast('Failed to update sequence.', 'error');
+            }
+        });
+    });
+
+    // Global Delete Modal trigger (NO BLINKING)
+    $(document).on('click', '.trigger-delete-modal', function() {
+        var name = $(this).data('name') || '';
+        var url = $(this).data('url') || '#';
+        $('#globalDeleteTargetName').text('"' + name + '"');
+        $('#globalDeleteForm').attr('action', url);
+        var deleteModal = new bootstrap.Modal(document.getElementById('globalDeleteModal'));
+        deleteModal.show();
+    });
+
+    // Global Large Image Preview trigger
+    $(document).on('click', '.preview-img-clickable', function() {
+        var src = $(this).attr('src');
+        if (src) {
+            $('#globalImagePreview').attr('src', src);
+            var imgModal = new bootstrap.Modal(document.getElementById('globalImageModal'));
+            imgModal.show();
+        }
+    });
+
+    // Global Detail Text Modal trigger
+    $(document).on('click', '.open-detail-modal', function() {
+        var title = $(this).data('title') || 'Details';
+        var content = $(this).data('content') || '';
+        $('#globalDetailTitle').text(title);
+        // Public form data is always rendered as plain text (prevents stored XSS)
+        if ($(this).data('plain')) {
+            $('#globalDetailContent').text(String(content));
+        } else {
+            $('#globalDetailContent').html(content);
+        }
+        var detailModal = new bootstrap.Modal(document.getElementById('globalDetailModal'));
+        detailModal.show();
+
+        // Mark enquiry as read when its message is opened
+        var readUrl = $(this).data('read-url');
+        var row = $(this).closest('tr');
+        if (readUrl && row.hasClass('row-unread')) {
+            $.post(readUrl, {'is_read': 'true', 'csrfmiddlewaretoken': '{{ csrf_token }}'}, function() {
+                row.removeClass('row-unread');
+                row.find('.read-badge').removeClass('bg-primary').addClass('bg-light text-muted').text('Read');
+                var badge = $('.nav-count').first();
+                var n = parseInt(badge.text(), 10) - 1;
+                if (n > 0) { badge.text(n); } else { badge.remove(); }
+            });
+        }
+    });
+
+    // Filter Select Dropdown Auto-submit
+    $(document).on('change', '.auto-submit-select', function() {
+        $(this).closest('form').submit();
+    });
+
+    // Dynamic Filter Reset Button Highlight Script
+    function checkFilterActive() {
+        $('.filter-form').each(function() {
+            var form = $(this);
+            var isDirty = false;
+            
+            form.find('.filter-input').each(function() {
+                if ($(this).val().trim() !== '') {
+                    isDirty = true;
+                }
+            });
+            
+            form.find('.filter-select').each(function() {
+                var val = $(this).val();
+                if (val && val !== 'active' && val !== '') {
+                    isDirty = true;
+                }
+            });
+            
+            var resetBtn = form.find('.btn-reset-filter');
+            if (isDirty) {
+                resetBtn.addClass('active-reset-btn');
+            } else {
+                resetBtn.removeClass('active-reset-btn');
+            }
+        });
+    }
+
+    // Custom Select Dropdown Widget Generator
+    function initCustomSelects() {
+        $('.filter-select, select.form-select:not(.sequence-select):not(.application-status-select)').each(function() {
+            var $select = $(this);
+            if ($select.data('custom-select-init')) {
+                var $wrapper = $select.closest('.custom-select-wrapper');
+                var selectedVal = $select.val();
+                var selectedText = $select.find('option:selected').text();
+                $wrapper.find('.trigger-text').text(selectedText);
+                $wrapper.find('.custom-select-option').removeClass('selected');
+                $wrapper.find('.custom-select-option[data-value="' + selectedVal + '"]').addClass('selected');
+                return;
+            }
+
+            $select.data('custom-select-init', true).hide();
+
+            var $wrapper = $('<div class="custom-select-wrapper"></div>');
+            $select.after($wrapper);
+            $wrapper.append($select);
+
+            var selectedVal = $select.val();
+            var selectedText = $select.find('option:selected').text() || 'SELECT';
+
+            var $trigger = $('<div class="custom-select-trigger">' +
+                                '<span class="trigger-text">' + selectedText + '</span>' +
+                                '<i class="fas fa-chevron-down trigger-icon"></i>' +
+                             '</div>');
+            $wrapper.append($trigger);
+
+            var $options = $('<div class="custom-select-options"></div>');
+            $select.find('option').each(function() {
+                var val = $(this).attr('value') !== undefined ? $(this).attr('value') : '';
+                var text = $(this).text();
+                var isSel = (String(val) === String(selectedVal));
+                var $opt = $('<div class="custom-select-option ' + (isSel ? 'selected' : '') + '" data-value="' + val + '">' +
+                                '<span>' + text + '</span>' +
+                                '<i class="fas fa-check check-icon"></i>' +
+                             '</div>');
+                $options.append($opt);
+            });
+            $wrapper.append($options);
+
+            $trigger.on('click', function(e) {
+                e.stopPropagation();
+                $('.custom-select-wrapper').not($wrapper).removeClass('open');
+                $wrapper.toggleClass('open');
+            });
+
+            $options.on('click', '.custom-select-option', function(e) {
+                e.stopPropagation();
+                var val = $(this).data('value');
+                var text = $(this).find('span').text();
+
+                $options.find('.custom-select-option').removeClass('selected');
+                $(this).addClass('selected');
+                $trigger.find('.trigger-text').text(text);
+                $wrapper.removeClass('open');
+
+                if (String($select.val()) !== String(val)) {
+                    $select.val(val).trigger('change');
+                }
+            });
+        });
+    }
+
+    $(document).on('click', function() {
+        $('.custom-select-wrapper').removeClass('open');
+    });
+
+    initCustomSelects();
+
+    checkFilterActive();
+
+    var searchTimeout = null;
+    $(document).on('input keyup', '.filter-input', function(e) {
+        checkFilterActive();
+        if ([37, 38, 39, 40, 9, 13, 16, 17, 18, 27, 91].indexOf(e.keyCode) !== -1) return;
+        var form = $(this).closest('form');
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            performAjaxFilter(form);
+        }, 200); // Super fast 200ms debounce!
+    });
+
+    $(document).on('change', '.filter-select', function() {
+        checkFilterActive();
+        var form = $(this).closest('form');
+        performAjaxFilter(form);
+    });
+
+    // Handle AJAX pagination
+    $(document).on('click', '.pagination a', function(e) {
+        e.preventDefault();
+        var url = $(this).attr('href');
+        if (url && url !== '#') {
+            performAjaxFilter(null, url);
+        }
+    });
+
+    function performAjaxFilter(form, customUrl) {
+        var url = customUrl || (form ? (form.attr('action') || window.location.pathname) : window.location.pathname);
+        var data = form ? form.serialize() : '';
+        
+        $('.table-responsive').css('opacity', '0.6');
+        
+        $.ajax({
+            url: url,
+            data: data,
+            type: 'GET',
+            success: function(response) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(response, 'text/html');
+                
+                // Swap table content
+                var newTable = $(doc).find('.table-responsive').html();
+                $('.table-responsive').html(newTable).css('opacity', '1');
+                
+                // Swap pagination list
+                var newPagi = $(doc).find('.pagination').html();
+                if (newPagi) {
+                    $('.pagination').html(newPagi).parent().show();
+                } else {
+                    $('.pagination').parent().hide();
+                }
+                
+                // Swap summary count
+                var newSummary = $(doc).find('.text-muted').html();
+                if (newSummary) {
+                    $('.text-muted').html(newSummary);
+                }
+                
+                // Update history state so URL updates nicely
+                var fullUrl = url + (data ? ('?' + data) : '');
+                window.history.pushState({path: fullUrl}, '', fullUrl);
+                
+                initCustomSelects();
+            },
+            error: function() {
+                $('.table-responsive').css('opacity', '1');
+            }
+        });
+    }
+});
+
+    // Image Upload Preview Handler
+    $(document).on('change', '.file-upload-input', function(e) {
+        var input = this;
+        var wrap = $(this).closest('.image-upload-wrap');
+        var previewContainer = wrap.find('.preview-container');
+        var placeholderContainer = wrap.find('.placeholder-container');
+        var previewImg = wrap.find('.img-preview');
+        
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.attr('src', e.target.result);
+                previewContainer.show();
+                placeholderContainer.hide();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    });
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,31 @@
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Django static and media
+/staticfiles/
+/media/
+
+# Local settings & secrets
+.env
+
+# Old NKE files moved out of this project (safe to delete)
+/_nke_backup/
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Database files
+db.sqlite3
+*.sqlite3

@@ -1,0 +1,111 @@
+{% load static %}
+{% include "superadmin/layout/header.html" %}
+
+<div class="main-content app-content mt-0">
+    <div class="side-app">
+        <div class="main-container container-fluid">
+
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title"><i class="fas fa-tag me-2"></i>Blog Categories</h1>
+                </div>
+                <div>
+                    <a href="{% url 'superadmin:BlogCategoryAdd' %}" class="btn btn-light" style="border-radius:12px; font-weight:600; color:#2E368F;">
+                        <i class="fas fa-plus me-1"></i> Add Category
+                    </a>
+                </div>
+            </div>
+
+            <!-- SEARCH & STATUS FILTER BAR -->
+            <div class="card mb-4 border-0 bg-transparent shadow-none">
+                <div class="card-body p-0">
+                    <form method="GET" class="row g-2 align-items-center filter-form">
+                        <div class="col-12 col-md-6">
+                            <input type="text" name="search" class="form-control filter-input" placeholder="Keyword Search..." value="{{ search }}">
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <select name="status" class="form-select filter-select auto-submit-select">
+                                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>ACTIVE</option>
+                                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>INACTIVE</option>
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>ALL STATUS</option>
+                            </select>
+                        </div>
+                        <div class="col-auto ms-auto ms-md-0">
+                            <a href="{% url 'superadmin:BlogCategoryList' %}" class="btn btn-light btn-reset-filter" title="Reset Filters">
+                                <i class="fas fa-sync-alt"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">Sl No</th>
+                                            <th>Category Name (EN)</th>
+                                            <th class="text-end">Category Name (AR)</th>
+                                            <th>Slug</th>
+                                            <th class="text-center">Blogs</th>
+                                            <th class="text-center" style="width:90px;">Sequence</th>
+                                            <th class="text-center" style="font-weight:700; font-size:12px; color:#0284C7; letter-spacing:0.05em;">STATUS</th>
+                                            <th class="text-center" style="font-weight:700; font-size:12px; color:#1A5276; letter-spacing:0.05em;">ACTION</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for c in categories %}
+                                        <tr>
+                                            <td class="text-center font-weight-bold text-secondary">{{ categories.start_index|add:forloop.counter0 }}</td>
+                                            <td style="font-weight:600; color:#1E293B;">{{ c.name }}</td>
+                                            <td class="text-end ar-text" style="font-weight:600; color:#1E293B;">{{ c.name_ar|default:"-" }}</td>
+                                            <td><code style="color:#2E368F;">{{ c.slug }}</code></td>
+                                            <td class="text-center"><a href="{% url 'superadmin:BlogList' %}?category={{ c.id }}&status=all" class="badge bg-light text-dark border">{{ c.blog_count }}</a></td>
+                                            <td class="text-center">
+                                                <select class="form-select sequence-select" data-model="BlogCategory" data-id="{{ c.id }}">
+                                                    {% for seq in sequence_range %}
+                                                    <option value="{{ seq }}" {% if c.sequence == seq or forloop.counter == c.sequence %}selected{% endif %}>{{ seq }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="form-check form-switch d-flex align-items-center justify-content-center m-0">
+                                                    <input type="checkbox" class="form-check-input status-toggle-switch" data-model="BlogCategory" data-id="{{ c.id }}" {% if c.is_active %}checked{% endif %}>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="action-buttons-wrap">
+                                                    <a href="{% url 'superadmin:BlogCategoryEdit' c.id %}" class="btn-action-edit" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button type="button" class="btn-action-delete trigger-delete-modal" data-name="{{ c.name }}" data-url="{% url 'superadmin:BlogCategoryDelete' c.id %}" title="Delete">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="8" class="text-center text-muted py-4">No blog categories found.</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {% include "superadmin/layout/pagination.html" with page_obj=categories %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% include "superadmin/layout/footer.html" %}

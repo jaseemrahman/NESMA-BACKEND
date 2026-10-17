@@ -1,0 +1,680 @@
+{% load static %}
+<!doctype html>
+<html lang="en" dir="ltr">
+
+<head>
+    <!-- META DATA -->
+    <meta charset="UTF-8">
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=0'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- FAVICON -->
+    <link rel="shortcut icon" type="image/png" href="{% static 'superadmin/assets/images/brand/nit-fav.png' %}" />
+
+    <!-- TITLE -->
+    <title>NIT Admin | Nesma Infrastructure &amp; Technology</title>
+
+    <!-- GOOGLE FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- BOOTSTRAP CSS -->
+    <link id="style" href="{% static 'superadmin/assets/plugins/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" />
+
+    <!-- STYLE CSS -->
+    <link href="{% static 'superadmin/assets/css/style.css' %}" rel="stylesheet" />
+    <link href="{% static 'superadmin/assets/css/skin-modes.css' %}" rel="stylesheet" />
+
+    <!-- ICON FONTS -->
+    <link href="{% static 'superadmin/assets/css/icons.css' %}" rel="stylesheet" />
+    <link href="{% static 'superadmin/assets/css/lightbox.min.css' %}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+    <!-- COLOR SKIN CSS -->
+    <link id="theme" rel="stylesheet" type="text/css" media="all" href="{% static 'superadmin/assets/colors/color1.css' %}" />
+
+    <!-- NIT CUSTOM THEME -->
+    <link href="{% static 'superadmin/assets/css/style-custom.css' %}" rel="stylesheet" />
+
+    <style>
+        /* ── NIT Superadmin Core Overrides ── */
+        :root {
+            --primary-bg-color: #2E368F;
+            --primary-bg-color2: #1F2566;
+        }
+
+        /* Sidebar active state override (must override base framework) */
+        .app-sidebar .side-menu .side-menu__item:hover,
+        .app-sidebar .side-menu .slide.active > a.side-menu__item {
+            background: linear-gradient(135deg, #2E368F, #1F2566) !important;
+            color: #fff !important;
+            border-radius: 10px !important;
+        }
+
+        .app-sidebar .side-menu .side-menu__item:hover .side-menu__icon,
+        .app-sidebar .side-menu .slide.active > a.side-menu__item .side-menu__icon {
+            color: #fff !important;
+        }
+
+        /* Sidebar background & borders */
+        .app-sidebar, .side-header {
+            background: #fff !important;
+        }
+
+        /* Page header style */
+        .page-header {
+            background: linear-gradient(135deg, #2E368F, #1F2566) !important;
+            border-radius: 20px !important;
+            padding: 20px 28px !important;
+            margin-bottom: 28px !important;
+            box-shadow: 0 8px 24px rgba(46,54,143,0.28) !important;
+            border: none !important;
+        }
+
+        .page-header .page-title {
+            color: #fff !important;
+            font-weight: 700 !important;
+            font-size: 20px !important;
+        }
+
+        .page-header .breadcrumb-item,
+        .page-header .breadcrumb-item a {
+            color: rgba(255,255,255,0.75) !important;
+        }
+
+        .page-header .breadcrumb-item.active {
+            color: #fff !important;
+        }
+
+        .page-header .breadcrumb-item + .breadcrumb-item::before {
+            color: rgba(255,255,255,0.4) !important;
+        }
+
+        /* Main content bg */
+        .main-content, .side-app {
+            background: #F0F4F8 !important;
+        }
+
+        /* ── Global Toast Notifications (Bottom Right) ── */
+        .global-toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .sa-toast {
+            pointer-events: auto;
+            min-width: 300px;
+            max-width: 400px;
+            background: #fff;
+            border-radius: 14px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-left: 5px solid #2E368F;
+            animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.3s ease;
+        }
+
+        .sa-toast.toast-error { border-left-color: #EF4444; }
+        .sa-toast.toast-success { border-left-color: #10B981; }
+        .sa-toast.toast-info { border-left-color: #2E368F; }
+
+        .sa-toast i {
+            font-size: 20px;
+        }
+        .sa-toast.toast-error i { color: #EF4444; }
+        .sa-toast.toast-success i { color: #10B981; }
+        .sa-toast.toast-info i { color: #2E368F; }
+
+        .sa-toast-content {
+            flex-grow: 1;
+        }
+
+        .sa-toast-content p {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1A202C;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(20px); }
+        }
+
+        .sa-toast.fade-out {
+            animation: fadeOut 0.5s ease forwards;
+        }
+
+        
+        /* Compress sidebar items */
+        .side-menu__item {
+            padding: 8px 15px !important;
+            margin-bottom: 0px !important;
+            min-height: 40px !important;
+        }
+        .slide {
+            margin-bottom: 2px !important;
+        }
+
+        /* App header / topbar */
+        .app-header.header {
+            background: #fff !important;
+            border-bottom: 1px solid #E2E8F0 !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+        }
+
+        /* Buttons inside page-header */
+        .page-header .sa-btn {
+            background: rgba(255,255,255,0.15) !important;
+            border: 1px solid rgba(255,255,255,0.25) !important;
+            color: #fff !important;
+            backdrop-filter: blur(6px);
+        }
+
+        .page-header .sa-btn:hover {
+            background: rgba(255,255,255,0.25) !important;
+        }
+
+        .page-header .sa-btn-module {
+            background: rgba(16,185,129,0.9) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+            box-shadow: 0 4px 14px rgba(16,185,129,0.4) !important;
+        }
+
+        /* Profile dropdown avatar */
+        .profile-user {
+            border: 2px solid #2E368F !important;
+            box-shadow: 0 2px 8px rgba(46,54,143,0.2) !important;
+        }
+
+        /* ── Unified Superadmin Filter Controls Styling ── */
+        .filter-form {
+            align-items: center;
+        }
+
+        .filter-input, .filter-select {
+            height: 42px !important;
+            border-radius: 25px !important;
+            border: 1px solid #E2E8F0 !important;
+            background-color: #ffffff !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            color: #334155 !important;
+            box-shadow: none !important;
+            transition: all 0.2s ease;
+        }
+
+        .filter-input {
+            padding: 0 18px !important;
+        }
+
+        .filter-input::placeholder {
+            color: #94A3B8 !important;
+            font-weight: 500 !important;
+        }
+
+        .filter-select {
+            padding: 0 36px 0 18px !important;
+            text-transform: uppercase !important;
+            background-position: right 14px center !important;
+            background-size: 14px 10px !important;
+            cursor: pointer;
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            border-color: #2E368F !important;
+            box-shadow: 0 0 0 3px rgba(46,54,143,0.15) !important;
+        }
+
+        .btn-reset-filter {
+            width: 42px !important;
+            height: 42px !important;
+            padding: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 50% !important;
+            border: 1px solid #E2E8F0 !important;
+            background: #ffffff !important;
+            color: #64748B !important;
+            transition: all 0.2s ease;
+        }
+
+        .btn-reset-filter:hover, .btn-reset-filter.active-reset-btn {
+            background: #2E368F !important;
+            color: #ffffff !important;
+            border-color: #2E368F !important;
+            box-shadow: 0 4px 12px rgba(46,54,143,0.3) !important;
+        }
+
+        /* ── Custom Select Dropdown Theme ── */
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .custom-select-trigger {
+            height: 42px;
+            border-radius: 12px;
+            border: 1px solid #E2E8F0;
+            background-color: #ffffff;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #334155;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+
+        .filter-form .custom-select-trigger {
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .custom-select-trigger:hover, .custom-select-wrapper.open .custom-select-trigger {
+            border-color: #2E368F;
+            box-shadow: 0 0 0 3px rgba(46,54,143,0.15);
+        }
+
+        .custom-select-trigger .trigger-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .filter-form .custom-select-trigger .trigger-text {
+            text-transform: uppercase;
+        }
+
+        .custom-select-trigger .trigger-icon {
+            font-size: 11px;
+            color: #94A3B8;
+            transition: transform 0.2s ease;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        .custom-select-wrapper.open .trigger-icon {
+            transform: rotate(180deg);
+            color: #2E368F;
+        }
+
+        .custom-select-options {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            min-width: 100%;
+            background: #ffffff;
+            border: 1px solid #D9DCF0;
+            border-radius: 14px;
+            padding: 6px;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+            z-index: 1050;
+            display: none;
+            max-height: 240px;
+            overflow-y: auto;
+            animation: dropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes dropdownSlideIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .custom-select-wrapper.open .custom-select-options {
+            display: block;
+        }
+
+        .custom-select-option {
+            padding: 9px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #334155;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.15s ease;
+            margin-bottom: 2px;
+        }
+
+        .filter-form .custom-select-option {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .custom-select-option:last-child {
+            margin-bottom: 0;
+        }
+
+        .custom-select-option:hover {
+            background-color: #EEF0FA;
+            color: #2E368F;
+        }
+
+        .custom-select-option.selected {
+            background: linear-gradient(135deg, #2E368F, #1F2566);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .custom-select-option .check-icon {
+            font-size: 11px;
+            opacity: 0;
+        }
+
+        .custom-select-option.selected .check-icon {
+            opacity: 1;
+        }
+
+        /* ── Crafted By ZUARAK Branding Footer ── */
+        .footer {
+            background: #ffffff !important;
+            border-top: 1px solid #E2E8F0 !important;
+            padding: 16px 20px !important;
+        }
+
+        .crafted-by-text {
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            letter-spacing: 2px !important;
+            text-transform: uppercase !important;
+            color: #475569 !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .zuarak-credit-link {
+            color: #2E368F !important;
+            font-weight: 800 !important;
+            letter-spacing: 2px !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease;
+        }
+
+        .zuarak-credit-link:hover {
+            color: #1F2566 !important;
+            text-shadow: 0 0 10px rgba(46,54,143,0.3);
+        }
+
+        /* ── Compact Dashstat Tile Overrides (4 per row) ── */
+        .dashstat-tile {
+            min-height: 98px !important;
+            padding: 14px 18px !important;
+            border-radius: 14px !important;
+        }
+
+        .dashstat-tile .tile-count {
+            font-size: 28px !important;
+            font-weight: 800 !important;
+            margin-bottom: 2px !important;
+        }
+
+        .dashstat-tile .tile-label {
+            font-size: 11.5px !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.5px !important;
+        }
+
+        .dashstat-tile .tile-icon-wrap {
+            width: 42px !important;
+            height: 42px !important;
+            right: 14px !important;
+        }
+
+        .dashstat-tile .tile-icon-wrap i {
+            font-size: 18px !important;
+        }
+
+        /* ── Arabic content inputs ── */
+        .ar-input, .ar-text {
+            direction: rtl;
+            text-align: right;
+            font-family: 'Noto Kufi Arabic', 'Inter', sans-serif !important;
+        }
+
+        /* ── Language tabs on forms ── */
+        .lang-tabs .nav-link {
+            border-radius: 10px !important;
+            font-weight: 600;
+            font-size: 13px;
+            color: #475569;
+            padding: 8px 18px;
+        }
+        .lang-tabs .nav-link.active {
+            background: linear-gradient(135deg, #2E368F, #1F2566) !important;
+            color: #fff !important;
+        }
+
+        /* ── Sidebar unread badges ── */
+        .side-menu__item .nav-count {
+            margin-left: auto;
+            min-width: 22px;
+            height: 20px;
+            padding: 0 7px;
+            border-radius: 10px;
+            background: #81D1E8;
+            color: #1F2566;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ── Status pills ── */
+        .status-pill { display:inline-block; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
+        .status-new { background:#E0F2FE; color:#0369A1; }
+        .status-reviewed { background:#EEF0FA; color:#2E368F; }
+        .status-shortlisted { background:#DCFCE7; color:#15803D; }
+        .status-rejected { background:#FEE2E2; color:#B91C1C; }
+        .status-hired { background:#FEF3C7; color:#B45309; }
+        tr.row-unread td { background:#F5F7FF !important; }
+        tr.row-unread td:first-child { box-shadow: inset 3px 0 0 #2E368F; }
+    </style>
+</head>
+
+<body class="app sidebar-mini ltr light-mode">
+
+    <!-- PAGE -->
+    <div class="page">
+        <div class="page-main">
+
+            <!-- app-Header -->
+            <div class="app-header header sticky">
+                <div class="container-fluid main-container">
+                    <div class="d-flex align-items-center">
+                        <a aria-label="Hide Sidebar" class="app-sidebar__toggle" data-bs-toggle="sidebar" href="javascript:void(0)"></a>
+
+                        <a class="logo-horizontal" href="{% url 'superadmin:Dashboard' %}">
+                            <img src="{% static 'superadmin/assets/images/brand/nit-logo.svg' %}" class="header-brand-img desktop-logo" alt="NIT" style="height:28px; width:auto;">
+                            <img src="{% static 'superadmin/assets/images/brand/nit-logo.svg' %}" class="header-brand-img light-logo1" alt="NIT" style="height:28px; width:auto;">
+                        </a>
+
+                        <div class="d-flex order-lg-2 ms-auto header-right-icons">
+                            <button class="navbar-toggler navresponsive-toggler d-lg-none ms-auto" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent-4"
+                                aria-controls="navbarSupportedContent-4" aria-expanded="false"
+                                aria-label="Toggle navigation">
+                                <span class="navbar-toggler-icon fe fe-more-vertical"></span>
+                            </button>
+                            <div class="navbar navbar-collapse responsive-navbar p-0">
+                                <div class="collapse navbar-collapse" id="navbarSupportedContent-4">
+                                    <div class="d-flex order-lg-2 align-items-center gap-2">
+
+                                        <!-- Dark/Light Toggle (hidden) -->
+                                        <div class="d-none">
+                                            <a class="nav-link icon theme-layout nav-link-bg layout-setting" style="border-radius:10px; padding:8px 12px;">
+                                                <span class="dark-layout"><i class="fe fe-moon" style="font-size:18px;"></i></span>
+                                                <span class="light-layout"><i class="fe fe-sun" style="font-size:18px;"></i></span>
+                                            </a>
+                                        </div>
+
+                                        <!-- Profile Dropdown -->
+                                        <div class="dropdown d-flex profile-1">
+                                            <a href="javascript:void(0)" data-bs-toggle="dropdown" class="nav-link leading-none d-flex align-items-center gap-2" style="padding: 4px 8px; border-radius:12px; border: 1px solid #E2E8F0;">
+                                                <img src="{% static 'superadmin/assets/images_ex/user_1.png' %}" alt="Admin" class="avatar profile-user brround cover-image" style="width:34px;height:34px;">
+                                                <span class="d-none d-sm-block" style="font-size:13px;font-weight:600;color:#1A202C;">{{ request.user.first_name|default:request.user.username|capfirst }}</span>
+                                                <i class="fe fe-chevron-down" style="font-size:12px;color:#718096;"></i>
+                                            </a>
+                                            <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow" style="min-width:200px;">
+                                                <div class="drop-heading" style="background:linear-gradient(135deg,#EEF0FA,#E3E6F6);padding:14px 16px;border-radius:14px 14px 0 0;">
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="{% static 'superadmin/assets/images_ex/user_1.png' %}" style="width:36px;height:36px;border-radius:50%;border:2px solid #2E368F;">
+                                                        <div class="user-details ms-2">
+                                                            <p class="user-name mb-0" style="font-weight:700;font-size:14px;color:#1A202C;">{{ request.user.first_name|default:request.user.username|capfirst }}</p>
+                                                            <small style="color:#2E368F;font-size:11px;font-weight:600;">NIT Admin Panel</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="dropdown-divider border-0 my-1"></div>
+                                                    <a class="dropdown-item" href="{% url 'superadmin:Profile' %}" style="padding:10px 16px;font-size:13px;font-weight:500;color:#4A5568;">
+                                                        <i class="dropdown-icon fe fe-user me-2" style="color:#2E368F;"></i> Profile
+                                                    </a>
+                                                </div>
+                                                <a class="dropdown-item" href="{% url 'superadmin:Logout' %}" style="padding:10px 16px;font-size:13px;font-weight:500;color:#EF4444;">
+                                                    <i class="dropdown-icon fe fe-log-out me-2"></i> Sign out
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /app-Header -->
+
+            <!-- APP-SIDEBAR -->
+            <div class="sticky">
+                <div class="app-sidebar__overlay" data-bs-toggle="sidebar"></div>
+                <div class="app-sidebar">
+                    <!-- Logo -->
+                    <div class="side-header">
+                        <a class="header-brand1" href="{% url 'superadmin:Dashboard' %}">
+                            <img src="{% static 'superadmin/assets/images/brand/nit-logo.svg' %}" class="header-brand-img desktop-logo" alt="NIT" style="height:30px; width:auto;">
+                            <img src="{% static 'superadmin/assets/images/brand/nit-fav.png' %}" class="header-brand-img toggle-logo" alt="NIT" style="height:34px; width:auto;">
+                            <img src="{% static 'superadmin/assets/images/brand/nit-fav.png' %}" class="header-brand-img light-logo" alt="NIT" style="height:34px; width:auto;">
+                            <img src="{% static 'superadmin/assets/images/brand/nit-logo.svg' %}" class="header-brand-img light-logo1" alt="NIT" style="height:30px; width:auto;">
+                        </a>
+                    </div>
+
+                    <div class="main-sidemenu">
+                        <div class="slide-left disabled" id="slide-left">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24">
+                                <path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z" />
+                            </svg>
+                        </div>
+
+                        <ul class="side-menu">
+                            <!-- Section label -->
+                            <li class="sub-category" style="padding:8px 16px 2px;font-size:10px;font-weight:700;color:#A0AEC0;letter-spacing:1.2px;text-transform:uppercase;">
+                                Main Menu
+                            </li>
+
+                            <!-- Dashboard -->
+                            <li {% if path == "dashboard" %} class="slide active" {% else %} class="slide" {% endif %}>
+                                <a class="side-menu__item has-link" href="{% url 'superadmin:Dashboard' %}">
+                                    <i class="side-menu__icon fe fe-home"></i>
+                                    <span class="side-menu__label">Dashboard</span>
+                                </a>
+                            </li>
+
+                            <li class="sub-category" style="padding:8px 16px 2px;font-size:10px;font-weight:700;color:#A0AEC0;letter-spacing:1.2px;text-transform:uppercase;">
+                                Media Centre
+                            </li>
+
+                            <!-- Blog Categories -->
+                            <li {% if path == "blog_categories" %} class="slide active" {% else %} class="slide" {% endif %}>
+                                <a class="side-menu__item has-link" href="{% url 'superadmin:BlogCategoryList' %}">
+                                    <i class="side-menu__icon fe fe-tag"></i>
+                                    <span class="side-menu__label">Blog Categories</span>
+                                </a>
+                            </li>
+
+                            <!-- Blogs -->
+                            <li {% if path == "blogs" %} class="slide active" {% else %} class="slide" {% endif %}>
+                                <a class="side-menu__item has-link" href="{% url 'superadmin:BlogList' %}">
+                                    <i class="side-menu__icon fe fe-book-open"></i>
+                                    <span class="side-menu__label">Blogs</span>
+                                </a>
+                            </li>
+
+                            <li class="sub-category" style="padding:8px 16px 2px;font-size:10px;font-weight:700;color:#A0AEC0;letter-spacing:1.2px;text-transform:uppercase;">
+                                Leads &amp; Recruitment
+                            </li>
+
+                            <!-- Enquiries -->
+                            <li {% if path == "enquiries" %} class="slide active" {% else %} class="slide" {% endif %}>
+                                <a class="side-menu__item has-link" href="{% url 'superadmin:EnquiryList' %}">
+                                    <i class="side-menu__icon fas fa-headset"></i>
+                                    <span class="side-menu__label">Enquiries</span>
+                                    {% if unread_enquiries %}<span class="nav-count">{{ unread_enquiries }}</span>{% endif %}
+                                </a>
+                            </li>
+
+                            <!-- Career Applications -->
+                            <li {% if path == "careers" %} class="slide active" {% else %} class="slide" {% endif %}>
+                                <a class="side-menu__item has-link" href="{% url 'superadmin:CareerApplicationList' %}">
+                                    <i class="side-menu__icon fe fe-briefcase"></i>
+                                    <span class="side-menu__label">Career Applications</span>
+                                    {% if new_applications %}<span class="nav-count">{{ new_applications }}</span>{% endif %}
+                                </a>
+                            </li>
+
+                            <li class="sub-category" style="padding:8px 16px 2px;font-size:10px;font-weight:700;color:#A0AEC0;letter-spacing:1.2px;text-transform:uppercase;">
+                                Account
+                            </li>
+
+                            <!-- Logout -->
+                            <!-- Profile -->
+                            <li {% if path == "profile" %} class="slide active" {% else %} class="slide" {% endif %}>
+                                <a class="side-menu__item has-link" href="{% url 'superadmin:Profile' %}">
+                                    <i class="side-menu__icon fe fe-lock"></i>
+                                    <span class="side-menu__label">Change Password</span>
+                                </a>
+                            </li>
+
+                            <li class="slide">
+                                <a class="side-menu__item has-link" href="{% url 'superadmin:Logout' %}" style="color:#EF4444 !important;">
+                                    <i class="side-menu__icon fe fe-log-out" style="color:#EF4444 !important;"></i>
+                                    <span class="side-menu__label" style="color:#EF4444 !important;">Sign Out</span>
+                                </a>
+                            </li>
+                        </ul>
+
+                        <div class="slide-right" id="slide-right">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24">
+                                <path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <!-- /APP-SIDEBAR -->
+            </div>
+

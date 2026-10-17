@@ -1,0 +1,18 @@
+{% extends "emails/base_admin.html" %}
+{% block title %}New Enquiry{% endblock %}
+{% block heading %}New {{ enquiry.get_source_display }} Enquiry{% endblock %}
+{% block content %}
+<p style="margin:0 0 18px; font-size:14px; color:#475569;">A new enquiry was submitted on the website. Reply directly to this email to respond to the sender.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="10" style="border-collapse:collapse; font-size:14px;">
+  <tr style="background:#EEF0FA;"><td style="width:150px; font-weight:bold; color:#2E368F;">Name</td><td>{{ enquiry.full_name }}</td></tr>
+  <tr><td style="font-weight:bold; color:#2E368F; border-top:1px solid #EEF0FA;">Email</td><td style="border-top:1px solid #EEF0FA;"><a href="mailto:{{ enquiry.email }}" style="color:#2E368F;">{{ enquiry.email }}</a></td></tr>
+  {% if enquiry.phone %}<tr><td style="font-weight:bold; color:#2E368F; border-top:1px solid #EEF0FA;">Phone</td><td style="border-top:1px solid #EEF0FA;">{{ enquiry.phone }}</td></tr>{% endif %}
+  {% if enquiry.company_name %}<tr><td style="font-weight:bold; color:#2E368F; border-top:1px solid #EEF0FA;">Company</td><td style="border-top:1px solid #EEF0FA;">{{ enquiry.company_name }}</td></tr>{% endif %}
+  <tr><td style="font-weight:bold; color:#2E368F; border-top:1px solid #EEF0FA;">Source</td><td style="border-top:1px solid #EEF0FA;">{{ enquiry.get_source_display }} ({{ enquiry.get_language_display }})</td></tr>
+  <tr><td style="font-weight:bold; color:#2E368F; border-top:1px solid #EEF0FA;">Received</td><td style="border-top:1px solid #EEF0FA;">{{ enquiry.created_at|date:"d M Y, h:i A" }}</td></tr>
+  <tr><td colspan="2" style="border-top:1px solid #EEF0FA; padding-top:16px;">
+    <div style="font-weight:bold; color:#2E368F; margin-bottom:8px;">Message</div>
+    <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:14px; white-space:pre-wrap; line-height:1.6;" {% if enquiry.language == 'ar' %}dir="rtl"{% endif %}>{{ enquiry.message|default:"-" }}</div>
+  </td></tr>
+</table>
+{% endblock %}

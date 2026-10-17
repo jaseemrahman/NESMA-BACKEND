@@ -1,0 +1,16 @@
+{% extends "emails/base_admin.html" %}
+{% block title %}New Career Application{% endblock %}
+{% block heading %}New Career Application{% endblock %}
+{% block content %}
+<p style="margin:0 0 18px; font-size:14px; color:#475569;">A new job application was submitted on the careers page. The applicant's CV is attached to this email.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="10" style="border-collapse:collapse; font-size:14px;">
+  <tr style="background:#EEF0FA;"><td style="width:170px; font-weight:bold; color:#2E368F;">Name</td><td>{{ application.full_name }}</td></tr>
+  <tr><td style="font-weight:bold; color:#2E368F; border-top:1px solid #EEF0FA;">Email</td><td style="border-top:1px solid #EEF0FA;"><a href="mailto:{{ application.email }}" style="color:#2E368F;">{{ application.email }}</a></td></tr>
+  <tr><td style="font-weight:bold; color:#2E368F; border-top:1px solid #EEF0FA;">Mobile</td><td style="border-top:1px solid #EEF0FA;">{{ application.mobile }}</td></tr>
+  <tr><td style="font-weight:bold; color:#2E368F; border-top:1px solid #EEF0FA;">Current Location</td><td style="border-top:1px solid #EEF0FA;">{{ application.current_location }}</td></tr>
+  <tr><td style="font-weight:bold; color:#2E368F; border-top:1px solid #EEF0FA;">Nationality</td><td style="border-top:1px solid #EEF0FA;">{{ application.nationality|default:"-" }}</td></tr>
+  <tr><td style="font-weight:bold; color:#2E368F; border-top:1px solid #EEF0FA;">Education</td><td style="border-top:1px solid #EEF0FA;">{{ application.education }}</td></tr>
+  <tr><td style="font-weight:bold; color:#2E368F; border-top:1px solid #EEF0FA;">Degree</td><td style="border-top:1px solid #EEF0FA;">{{ application.degree }}</td></tr>
+  <tr><td style="font-weight:bold; color:#2E368F; border-top:1px solid #EEF0FA;">Applied</td><td style="border-top:1px solid #EEF0FA;">{{ application.created_at|date:"d M Y, h:i A" }} ({{ application.get_language_display }})</td></tr>
+</table>
+{% endblock %}

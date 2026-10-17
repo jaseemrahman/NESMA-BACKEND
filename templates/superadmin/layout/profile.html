@@ -1,0 +1,155 @@
+{% include 'superadmin/layout/header.html' %}
+
+ 
+
+  <!--app-content open-->
+
+            <div class="main-content app-content mt-0">
+
+                <div class="side-app">
+
+
+
+                    <!-- CONTAINER -->
+
+                    <div class="main-container container-fluid">
+
+
+
+                        <!-- PAGE-HEADER -->
+
+                        <div class="page-header">
+
+                            <h1 class="page-title">Profile View</h1>
+
+                            
+
+                        </div>
+
+                        <!-- PAGE-HEADER END -->
+
+ <!-- ROW-1 OPEN -->
+
+                        <div class="row justify-content-center">
+                            <div class="col-xl-6 col-lg-8 col-md-10">
+                                <div class="card shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
+                                    <div class="card-header bg-white py-3 border-bottom">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary-transparent p-2 rounded-3 me-3">
+                                                <i class="fe fe-lock text-primary fs-20"></i>
+                                            </div>
+                                            <h3 class="card-title mb-0" style="font-weight: 700;">Edit Password</h3>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <form method="post" id="passwordForm">
+                                            {% csrf_token %}
+                                            
+                                            <div class="form-group mb-3">
+                                                <label class="form-label text-muted small fw-bold text-uppercase">Current Password</label>
+                                                <div class="input-group" id="Password-toggle">
+                                                    <span class="input-group-text bg-primary-transparent border-end-0">
+                                                        <i class="fe fe-shield text-primary"></i>
+                                                    </span>
+                                                    <input class="form-control border-start-0 border-end-0 py-2" type="password" name="oldpassword" required placeholder="Enter current password" style="background-color: #f8fafc;">
+                                                    <button class="btn btn-light border border-start-0" type="button" onclick="togglePassword('Password-toggle')">
+                                                        <i class="fe fe-eye text-muted"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                    
+                                            <div class="form-group mb-3">
+                                                <label class="form-label text-muted small fw-bold text-uppercase">New Password</label>
+                                                <div class="input-group" id="Password-toggle1">
+                                                    <span class="input-group-text bg-primary-transparent border-end-0">
+                                                        <i class="fe fe-lock text-primary"></i>
+                                                    </span>
+                                                    <input class="form-control border-start-0 border-end-0 py-2" type="password" id="newpassword" name="newpassword" required placeholder="Enter new password" style="background-color: #f8fafc;">
+                                                    <button class="btn btn-light border border-start-0" type="button" onclick="togglePassword('Password-toggle1')">
+                                                        <i class="fe fe-eye text-muted"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                    
+                                            <div class="form-group mb-4">
+                                                <label class="form-label text-muted small fw-bold text-uppercase">Confirm Password</label>
+                                                <div class="input-group" id="Password-toggle2">
+                                                    <span class="input-group-text bg-primary-transparent border-end-0">
+                                                        <i class="fe fe-check-circle text-primary"></i>
+                                                    </span>
+                                                    <input class="form-control border-start-0 border-end-0 py-2" type="password" id="conpassword" name="conpassword" required placeholder="Repeat new password" minlength="8" maxlength="20" style="background-color: #f8fafc;">
+                                                    <button class="btn btn-light border border-start-0" type="button" onclick="togglePassword('Password-toggle2')">
+                                                        <i class="fe fe-eye text-muted"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                    
+                                            <div id="error_message" class="text-danger small mb-3"></div>
+                                    
+
+
+                                            <div class="d-grid gap-2 mt-4">
+                                                <button type="submit" class="sa-btn sa-btn-primary py-2 shadow-sm">
+                                                    <i class="fe fe-refresh-cw me-2"></i>Update Password
+                                                </button>
+                                                <a href="{% url 'superadmin:Dashboard' %}" class="btn btn-light py-2">Cancel</a>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ROW-1 CLOSED -->
+
+                    </div>
+
+                    <!-- CONTAINER END -->
+
+                </div>
+
+            </div>
+
+            <!--app-content close-->
+
+
+            
+
+<script>
+function togglePassword(id) {
+    var group = document.getElementById(id);
+    var input = group.querySelector('input');
+    var icon = group.querySelector('button i');
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('fe-eye');
+        icon.classList.add('fe-eye-off');
+    } else {
+        input.type = "password";
+        icon.classList.remove('fe-eye-off');
+        icon.classList.add('fe-eye');
+    }
+}
+
+document.getElementById('passwordForm').addEventListener('submit', function(e) {
+    var newpass = document.getElementById('newpassword').value;
+    var conpass = document.getElementById('conpassword').value;
+    var errMsg = document.getElementById('error_message');
+    
+    if (newpass.length < 8) {
+        e.preventDefault();
+        errMsg.textContent = "New password must be at least 8 characters long.";
+        return false;
+    }
+    
+    if (newpass !== conpass) {
+        e.preventDefault();
+        errMsg.textContent = "New password and Confirm password do not match.";
+        return false;
+    }
+    
+    errMsg.textContent = "";
+});
+</script>
+
+{% include 'superadmin/layout/footer.html' %}
