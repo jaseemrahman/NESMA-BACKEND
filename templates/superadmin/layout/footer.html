@@ -205,7 +205,7 @@ $(document).ready(function() {
         $('#globalDeleteForm').attr('action', url);
         // after deleting, come back to the same list page / filters
         $('#globalDeleteForm input[name="next"]').val($(this).data('next') || ($('#ajax-list').length ? currentListUrl() : ''));
-        var deleteModal = new bootstrap.Modal(document.getElementById('globalDeleteModal'));
+        var deleteModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('globalDeleteModal'));
         deleteModal.show();
     });
 
@@ -214,7 +214,7 @@ $(document).ready(function() {
         var src = $(this).data('full') || $(this).attr('src');  // list thumbnails open the full image
         if (src) {
             $('#globalImagePreview').attr('src', src);
-            var imgModal = new bootstrap.Modal(document.getElementById('globalImageModal'));
+            var imgModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('globalImageModal'));
             imgModal.show();
         }
     });
@@ -230,7 +230,7 @@ $(document).ready(function() {
         } else {
             $('#globalDetailContent').html(content);
         }
-        var detailModal = new bootstrap.Modal(document.getElementById('globalDetailModal'));
+        var detailModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('globalDetailModal'));
         detailModal.show();
     });
 
@@ -366,7 +366,8 @@ $(document).ready(function() {
         var $list = $('#ajax-list');
         if (!$list.length) { window.location.href = url; return; }
         if (listXhr) { listXhr.abort(); }
-        $list.css('opacity', '0.55');
+        clearTimeout(window.__listDimTimer);
+        window.__listDimTimer = setTimeout(function() { $list.css('opacity', '0.55'); }, 150);
         listXhr = $.ajax({
             url: url,
             type: 'GET',
@@ -375,11 +376,12 @@ $(document).ready(function() {
             success: function(html) {
                 var fresh = $(new DOMParser().parseFromString(html, 'text/html')).find('#ajax-list');
                 if (!fresh.length) { window.location.href = url; return; }
+                clearTimeout(window.__listDimTimer);
                 $list.html(fresh.html()).css('opacity', '1');
                 if (pushHistory) { window.history.pushState({ajaxList: true}, '', url); }
             },
             error: function(xhr, status) {
-                if (status !== 'abort') { $list.css('opacity', '1'); showToast('Could not load the list. Please try again.', 'error'); }
+                if (status !== 'abort') { clearTimeout(window.__listDimTimer); $list.css('opacity', '1'); showToast('Could not load the list. Please try again.', 'error'); }
             }
         });
     }
@@ -393,7 +395,7 @@ $(document).ready(function() {
     $(document).on('input', '.filter-input', function() {
         checkFilterActive();
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(function() { loadAjaxList(listUrlFromForm(), true); }, 300);
+        searchTimeout = setTimeout(function() { loadAjaxList(listUrlFromForm(), true); }, 250);
     });
 
     $(document).on('change', '.filter-select', function() {

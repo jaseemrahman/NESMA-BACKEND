@@ -7,10 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" type="image/png" href="{% static 'superadmin/assets/images/brand/nit-fav.png' %}" />
     <title>NIT Admin | Sign In</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500;600&family=Anek+Latin:wght@200;400;500&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <!-- Fonts & icons served locally (no third-party round trips); critical files preloaded -->
+    <link rel="preload" href="{% static 'superadmin/assets/fonts/jost-latin.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{% static 'superadmin/assets/fonts/anek-latin-latin.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{% static 'superadmin/assets/fontawesome/webfonts/fa-solid-900.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link href="{% static 'superadmin/assets/fonts/nit-fonts.css' %}" rel="stylesheet">
+    <link href="{% static 'superadmin/assets/fontawesome/css/all.min.css' %}" rel="stylesheet">
     <link href="{% static 'superadmin/assets/css/nit-design.css' %}" rel="stylesheet" />
     <style>
         html, body { height: 100%; margin: 0; }
@@ -32,13 +34,13 @@
         }
         .login-visual__img {
             position: absolute; inset: 0;
-            background: url("{% static 'superadmin/assets/images/brand/login-hero.jpg' %}") center / cover no-repeat;
+            background: url("{% static 'superadmin/assets/images/brand/login-hero.jpg' %}") 72% center / cover no-repeat;
             animation: kenburns 24s ease-in-out infinite alternate;
         }
         .login-visual::after {
             content: ""; position: absolute; inset: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,.4), rgba(0,0,0,0) 45%, rgba(0,0,0,.7)),
-                        linear-gradient(90deg, rgba(46,54,143,.55), rgba(46,54,143,0) 70%);
+            /* artwork is already deep blue: light scrim only, enough for white text */
+            background: linear-gradient(to bottom, rgba(0,0,0,.25), rgba(0,0,0,0) 45%, rgba(0,0,0,.45));
         }
         .login-visual > *:not(.login-visual__img) { position: relative; z-index: 1; }
         .login-visual__logo { height: 34px; width: auto; align-self: flex-start; filter: brightness(0) invert(1); }
@@ -47,11 +49,14 @@
             text-transform: uppercase; color: var(--nit-sky); margin-bottom: 18px;
         }
         .login-visual__title {
-            display: flex; flex-direction: column;
-            font-weight: 200; font-size: clamp(34px, 3.3vw, 55px); line-height: 1.13;
-            letter-spacing: var(--tracking-wide); margin: 0 0 18px; color: #fff;
+            font-weight: 200; font-size: clamp(36px, 3.4vw, 56px); line-height: 1.12;
+            letter-spacing: var(--tracking-tight); margin: 0 0 10px; color: #fff;
         }
-        .login-visual__lead { font-size: 18px; font-weight: 300; line-height: 1.6; color: rgba(255,255,255,.75); max-width: 460px; margin: 0; }
+        /* one line, directly under the heading */
+        .login-visual__lead {
+            font-size: clamp(13px, 1.1vw, 17px); font-weight: 300; line-height: 1.5;
+            color: rgba(255,255,255,.75); margin: 0; white-space: nowrap;
+        }
 
         /* RIGHT: white form panel */
         .login-panel {
@@ -126,8 +131,7 @@
             <div class="login-visual__img"></div>
             <img class="login-visual__logo" src="{% static 'superadmin/assets/images/brand/nit-logo.svg' %}" alt="">
             <div>
-                <div class="login-visual__eyebrow">Nesma Infrastructure &amp; Technology</div>
-                <h2 class="login-visual__title"><span>Engineering Infrastructure.</span><span>Enabling Digital Transformation.</span></h2>
+                <h2 class="login-visual__title">Website Management Portal</h2>
                 <p class="login-visual__lead">Manage the media centre, website enquiries and career applications.</p>
             </div>
         </div>

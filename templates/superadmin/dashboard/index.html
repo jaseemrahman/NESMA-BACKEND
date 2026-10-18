@@ -21,65 +21,45 @@
                 </div>
             </div>
 
-            <!-- PRIMARY STATS GRID -->
-            <div class="row g-3 mb-4">
-
-                <div class="col-6 col-md-3">
-                    <a href="{% url 'superadmin:BlogCategoryList' %}" class="dashstat-tile h-100" style="display:block;text-decoration:none; background: linear-gradient(135deg, #2E368F, #4A54C4); color:#fff;">
-                        <div class="tile-icon-wrap"><i class="fas fa-folder-open"></i></div>
-                        <div class="tile-count">{{ blog_stats.categories }}</div>
-                        <div class="tile-label">Blog Categories</div>
-                    </a>
-                </div>
-
-                <div class="col-6 col-md-3">
-                    <a href="{% url 'superadmin:BlogList' %}" class="dashstat-tile h-100" style="display:block;text-decoration:none; background: linear-gradient(135deg, #0EA5E9, #81D1E8); color:#fff;">
-                        <div class="tile-icon-wrap"><i class="fas fa-newspaper"></i></div>
-                        <div class="tile-count">{{ blog_stats.active }}<small style="font-size:13px; opacity:.8;"> / {{ blog_stats.total }}</small></div>
-                        <div class="tile-label">Active Blogs</div>
-                    </a>
-                </div>
-
-                <div class="col-6 col-md-3">
-                    <a href="{% url 'superadmin:EnquiryList' %}" class="dashstat-tile h-100" style="display:block;text-decoration:none; background: linear-gradient(135deg, #F43F5E, #FB7185); color:#fff;">
-                        <div class="tile-icon-wrap"><i class="fas fa-headset"></i></div>
-                        <div class="tile-count">{{ enquiry_stats.total }}</div>
-                        <div class="tile-label">Total Enquiries</div>
-                    </a>
-                </div>
-
-                <div class="col-6 col-md-3">
-                    <a href="{% url 'superadmin:CareerApplicationList' %}?status=new" class="dashstat-tile h-100" style="display:block;text-decoration:none; background: linear-gradient(135deg, #11998e, #38ef7d); color:#fff;">
-                        <div class="tile-icon-wrap"><i class="fas fa-user-tie"></i></div>
-                        <div class="tile-count">{{ career_stats.new }}<small style="font-size:13px; opacity:.8;"> / {{ career_stats.total }}</small></div>
-                        <div class="tile-label">New Applications</div>
-                    </a>
-                </div>
-
-                <div class="col-6 col-md-4">
-                    <a href="{% url 'superadmin:EnquiryList' %}?source=contact" class="dashstat-tile h-100" style="display:block;text-decoration:none; background: linear-gradient(135deg, #6366F1, #A5B4FC); color:#fff;">
-                        <div class="tile-icon-wrap"><i class="fas fa-address-card"></i></div>
-                        <div class="tile-count">{{ enquiry_stats.contact }}</div>
-                        <div class="tile-label">Contact Page Enquiries</div>
-                    </a>
-                </div>
-
-                <div class="col-6 col-md-4">
-                    <a href="{% url 'superadmin:EnquiryList' %}?source=footer" class="dashstat-tile h-100" style="display:block;text-decoration:none; background: linear-gradient(135deg, #F2994A, #F2C94C); color:#fff;">
-                        <div class="tile-icon-wrap"><i class="fas fa-comment-dots"></i></div>
-                        <div class="tile-count">{{ enquiry_stats.footer }}</div>
-                        <div class="tile-label">Footer Form Enquiries</div>
-                    </a>
-                </div>
-
-                <div class="col-12 col-md-4">
-                    <a href="{% url 'superadmin:CareerApplicationList' %}" class="dashstat-tile h-100" style="display:block;text-decoration:none; background: linear-gradient(135deg, #EC4899, #F472B6); color:#fff;">
-                        <div class="tile-icon-wrap"><i class="fas fa-calendar-check"></i></div>
-                        <div class="tile-count">{{ career_stats.this_month }}</div>
-                        <div class="tile-label">Applications This Month</div>
-                    </a>
-                </div>
-
+            <!-- KEY FIGURES: solid NIT-blue boxes (4 + 3) -->
+            <div class="nit-boxes nit-boxes--4">
+                <a href="{% url 'superadmin:BlogCategoryList' %}" class="nit-box">
+                    <span class="nit-box__icon"><i class="fas fa-folder-open"></i></span>
+                    <span class="nit-box__num">{{ blog_stats.categories }}</span>
+                    <span class="nit-box__label">Blog Categories</span>
+                </a>
+                <a href="{% url 'superadmin:BlogList' %}" class="nit-box">
+                    <span class="nit-box__icon"><i class="fas fa-newspaper"></i></span>
+                    <span class="nit-box__num">{{ blog_stats.active }}<small>/ {{ blog_stats.total }}</small></span>
+                    <span class="nit-box__label">Active Blogs</span>
+                </a>
+                <a href="{% url 'superadmin:EnquiryList' %}" class="nit-box">
+                    <span class="nit-box__icon"><i class="fas fa-headset"></i></span>
+                    <span class="nit-box__num">{{ enquiry_stats.total }}</span>
+                    <span class="nit-box__label">Total Enquiries</span>
+                </a>
+                <a href="{% url 'superadmin:CareerApplicationList' %}?status=new" class="nit-box">
+                    <span class="nit-box__icon"><i class="fas fa-user-tie"></i></span>
+                    <span class="nit-box__num">{{ career_stats.new }}<small>/ {{ career_stats.total }}</small></span>
+                    <span class="nit-box__label">New Applications</span>
+                </a>
+            </div>
+            <div class="nit-boxes nit-boxes--3 mb-4">
+                <a href="{% url 'superadmin:EnquiryList' %}?source=contact" class="nit-box">
+                    <span class="nit-box__icon"><i class="fas fa-address-card"></i></span>
+                    <span class="nit-box__num">{{ enquiry_stats.contact }}</span>
+                    <span class="nit-box__label">Contact Page Enquiries</span>
+                </a>
+                <a href="{% url 'superadmin:EnquiryList' %}?source=footer" class="nit-box">
+                    <span class="nit-box__icon"><i class="fas fa-comment-dots"></i></span>
+                    <span class="nit-box__num">{{ enquiry_stats.footer }}</span>
+                    <span class="nit-box__label">Footer Form Enquiries</span>
+                </a>
+                <a href="{% url 'superadmin:CareerApplicationList' %}" class="nit-box">
+                    <span class="nit-box__icon"><i class="fas fa-calendar-check"></i></span>
+                    <span class="nit-box__num">{{ career_stats.this_month }}</span>
+                    <span class="nit-box__label">Applications This Month</span>
+                </a>
             </div>
 
             <!-- RECENT ENQUIRIES & APPLICATIONS -->

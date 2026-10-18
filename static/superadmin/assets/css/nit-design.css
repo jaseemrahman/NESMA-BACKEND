@@ -264,17 +264,17 @@ a:hover { color: var(--nit-blue-dark); }
     color: var(--nit-blue);
 }
 
-/* stat blocks: Anek Latin number in NIT blue, light gray label, hairline frame */
+/* stat blocks: solid NIT blue panels (like the site's mobile project cards), white Anek Latin numbers */
 .dashstat-tile, .dashstat-tile:hover {
-    background: #FFFFFF !important;
-    color: var(--text-heading) !important;
-    border: 1px solid var(--border-light) !important;
+    background: var(--nit-blue) !important;
+    color: #FFFFFF !important;
+    border: 1px solid var(--nit-blue) !important;
     box-shadow: none !important;
     transform: none !important;
     min-height: 150px !important;
     padding: 24px 26px !important;
     justify-content: flex-end !important;
-    transition: border-color var(--dur-base) var(--ease-standard) !important;
+    transition: background-color var(--dur-base) var(--ease-standard) !important;
 }
 .dashstat-tile::before, .dashstat-tile::after {
     content: "" !important;
@@ -289,7 +289,7 @@ a:hover { color: var(--nit-blue-dark); }
     top: auto !important; right: 0 !important; bottom: 0 !important; left: 0 !important;
 }
 .dashstat-tile::after { display: none !important; }
-.dashstat-tile:hover { border-color: var(--nit-blue) !important; }
+.dashstat-tile:hover { background: var(--nit-blue-dark) !important; }
 .dashstat-tile:hover::before { transform: scaleX(1) !important; }
 .dashstat-tile .tile-count {
     font-family: var(--font-anek-latin) !important;
@@ -297,27 +297,28 @@ a:hover { color: var(--nit-blue-dark); }
     font-size: 60px !important;
     line-height: 1 !important;
     letter-spacing: var(--tracking-tight) !important;
-    color: var(--nit-blue) !important;
+    color: #FFFFFF !important;
     margin-bottom: 10px !important;
 }
-.dashstat-tile .tile-count small { font-size: 22px !important; color: var(--gray-400) !important; opacity: 1 !important; }
+.dashstat-tile .tile-count small { font-size: 22px !important; color: rgba(255,255,255,.6) !important; opacity: 1 !important; }
 .dashstat-tile .tile-label {
     font-size: 15px !important;
     font-weight: 300 !important;
     text-transform: none !important;
     letter-spacing: normal !important;
-    color: var(--text-muted) !important;
+    color: rgba(255,255,255,.85) !important;
     opacity: 1 !important;
 }
 .dashstat-tile .tile-icon-wrap {
     top: 22px !important; right: 22px !important; transform: none !important;
     width: 38px !important; height: 38px !important;
     background: transparent !important;
-    border: 1px solid var(--border-light) !important;
+    border: 1px solid rgba(255,255,255,.3) !important;
     transition: background-color var(--dur-slow) ease-in-out, border-color var(--dur-slow) ease-in-out;
 }
-.dashstat-tile .tile-icon-wrap i { color: var(--nit-blue) !important; font-size: 15px !important; }
+.dashstat-tile .tile-icon-wrap i { color: #FFFFFF !important; font-size: 15px !important; transition: color var(--dur-slow) ease-in-out; }
 .dashstat-tile:hover .tile-icon-wrap { background: var(--nit-sky) !important; border-color: var(--nit-sky) !important; }
+.dashstat-tile:hover .tile-icon-wrap i { color: var(--nit-blue) !important; }
 
 /* ── Signature button: label box + separate square arrow box ──────────── */
 .nit-btn {
@@ -645,3 +646,211 @@ select.form-select.sequence-select, .table select.sequence-select {
 
 /* Bootstrap grid class used by the dashboard (not in the purged theme bundle) */
 .row > .col-6 { flex: 0 0 auto; width: 50%; }
+
+/* ── Dashboard: website stats row ───────────────────────────────────────
+   Mirrors nit-hazel.vercel.app "35+ / 63+ / 1900+ / 60k+": white columns, hairline
+   dividers, Anek Latin 200 numbers in NIT blue, gray Futura Light labels, thin line icon. */
+.nit-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
+}
+.nit-stat {
+    position: relative;
+    display: flex; flex-direction: column;
+    min-height: 190px;
+    padding: 26px 24px 24px;
+    text-decoration: none !important;
+    background: #FFFFFF;
+    transition: background-color var(--dur-base) var(--ease-standard);
+}
+.nit-stat + .nit-stat { border-left: 1px solid var(--border-light); }
+.nit-stat::after {                              /* sky line drawn on hover */
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+    background: var(--nit-sky); transform: scaleX(0); transform-origin: left;
+    transition: transform var(--dur-slow) ease-in-out;
+}
+.nit-stat:hover { background: var(--surface-1); }
+.nit-stat:hover::after { transform: scaleX(1); }
+.nit-stat__num {
+    font-family: var(--font-anek-latin) !important;
+    font-weight: 200; font-size: 72px; line-height: 1;
+    letter-spacing: var(--tracking-tight);
+    color: var(--nit-blue);
+}
+.nit-stat__num small { font-size: .45em; color: var(--gray-400); margin-left: 4px; font-family: inherit !important; }
+.nit-stat__label {
+    margin-top: 12px;
+    font-size: 16px; font-weight: 300; line-height: 1.5;
+    color: var(--text-muted);
+}
+.nit-stat__icon {
+    position: absolute; right: 22px; bottom: 20px;
+    font-size: 26px; color: var(--nit-sky-alt);
+    transition: color var(--dur-slow) ease-in-out;
+}
+.nit-stat:hover .nit-stat__icon { color: var(--nit-blue); }
+.fe-message-square::before {
+	content: "\e98f"
+}
+
+/* ── Dashboard: "NIT at a glance" tiles ─────────────────────────────── */
+.nit-tile {
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: space-between;
+    height: 100%; min-height: 200px;
+    padding: 24px 26px;
+    text-decoration: none !important;
+    isolation: isolate;
+}
+.nit-tile__label { font-size: 16px; font-weight: 300; line-height: 1.5; position: relative; }
+.nit-tile__num {
+    font-family: var(--font-anek-latin) !important;
+    font-weight: 200; font-size: 80px; line-height: 1;
+    letter-spacing: var(--tracking-tight); position: relative;
+}
+/* 1. art tile - hero artwork with the site's dark gradient, white text, slow zoom on hover */
+.nit-tile--art { color: #FFFFFF; background: var(--nit-navy-ink); }
+.nit-tile--art::before {
+    content: ""; position: absolute; inset: 0; z-index: -2;
+    background: url("../images/brand/login-hero.jpg") 70% 40% / cover no-repeat;
+    transition: transform 1.2s ease-out;
+}
+.nit-tile--art::after {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background: linear-gradient(to bottom, rgba(0,0,0,.25), rgba(0,0,0,0) 45%, rgba(0,0,0,.55));
+}
+.nit-tile--art:hover::before { transform: scale(1.08); }
+.nit-tile--art .nit-tile__num { align-self: flex-end; color: #FFFFFF; }
+.nit-tile--art .nit-tile__label { color: rgba(255,255,255,.9); }
+/* 2. light tile - #F9F9F9 panel, dark number, faint line-art */
+.nit-tile--light { background: var(--surface-1); color: var(--text-heading); }
+.nit-tile--light::after {
+    content: ""; position: absolute; right: -50px; bottom: -60px; width: 240px; height: 240px; z-index: -1;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' fill='none' stroke='%23E5E7EB' stroke-width='1'%3E%3Ccircle cx='100' cy='100' r='98'/%3E%3Cellipse cx='100' cy='100' rx='45' ry='98'/%3E%3Cellipse cx='100' cy='100' rx='80' ry='98'/%3E%3Cpath d='M2 100h196M14 52h172M14 148h172'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.nit-tile--light .nit-tile__num { color: var(--text-heading); }
+.nit-tile--light .nit-tile__label { color: var(--text-heading); }
+.nit-tile--light:hover { background: var(--surface-2); }
+/* 3. blue tile - solid NIT blue, white number, sky accent line */
+.nit-tile--blue { background: var(--nit-blue); color: #FFFFFF; transition: background-color var(--dur-base) var(--ease-standard); }
+.nit-tile--blue::after {
+    content: ""; position: absolute; left: 26px; right: 26px; top: 50%; height: 1px;
+    background: linear-gradient(90deg, var(--nit-sky-alt), rgba(129,209,232,0));
+    opacity: .6;
+}
+.nit-tile--blue .nit-tile__label { color: rgba(255,255,255,.9); }
+.nit-tile--blue .nit-tile__num { color: #FFFFFF; align-self: flex-end; }
+.nit-tile--blue:hover { background: var(--nit-blue-dark); }
+
+/* ── All dashboard boxes: solid NIT blue, white Anek Latin numbers ───── */
+.nit-stats { border-color: var(--nit-blue); gap: 0; }
+.nit-stat { background: var(--nit-blue); }
+.nit-stat + .nit-stat { border-left: 1px solid rgba(255,255,255,.15); }
+.nit-stat:hover { background: var(--nit-blue-dark); }
+.nit-stat__num { color: #FFFFFF; }
+.nit-stat__num small { color: rgba(255,255,255,.55); }
+.nit-stat__label { color: rgba(255,255,255,.85); }
+.nit-stat__icon { color: rgba(255,255,255,.55); }
+.nit-stat:hover .nit-stat__icon { color: var(--nit-sky); }
+
+.nit-tile--art, .nit-tile--light, .nit-tile--blue {
+    background: var(--nit-blue); color: #FFFFFF;
+    transition: background-color var(--dur-base) var(--ease-standard);
+}
+.nit-tile--art::before, .nit-tile--art::after, .nit-tile--light::after, .nit-tile--blue::after { display: none; }
+.nit-tile--art:hover, .nit-tile--light:hover, .nit-tile--blue:hover { background: var(--nit-blue-dark); }
+.nit-tile .nit-tile__label { color: rgba(255,255,255,.9); }
+.nit-tile .nit-tile__num { color: #FFFFFF; align-self: flex-end; }
+.nit-tile--light .nit-tile__num { order: 2; }   /* same layout as the others: label top, number bottom-right */
+
+@media (max-width: 991px) {
+    .nit-stats { grid-template-columns: repeat(2, 1fr); }
+    .nit-stat:nth-child(3) { border-left: 0; }
+    .nit-stat:nth-child(n+3) { border-top: 1px solid rgba(255,255,255,.15); }
+    .nit-stat__num { font-size: 56px; }
+}
+@media (max-width: 575px) {
+    .nit-stat { min-height: 150px; padding: 18px 16px; }
+    .nit-stat__num { font-size: 44px; }
+    .nit-stat__label { font-size: 14px; }
+    .nit-stat__icon { font-size: 20px; right: 14px; bottom: 14px; }
+    .nit-tile { min-height: 160px; }
+    .nit-tile__num { font-size: 60px; }
+}
+
+/* ── Dashboard key-figure boxes: separate solid NIT-blue boxes with even gaps ── */
+.nit-boxes { display: grid; gap: 24px; margin-bottom: 16px; }
+.nit-boxes--4 { grid-template-columns: repeat(4, 1fr); }
+.nit-boxes--3 { grid-template-columns: repeat(3, 1fr); }
+.nit-box {
+    position: relative;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    min-height: 163px;
+    padding: 28px 30px 30px;
+    background: var(--nit-blue);
+    color: #FFFFFF !important;
+    text-decoration: none !important;
+    transition: background-color var(--dur-base) var(--ease-standard);
+}
+.nit-box::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+    background: var(--nit-sky); transform: scaleX(0); transform-origin: left;
+    transition: transform var(--dur-slow) ease-in-out;
+}
+.nit-box:hover { background: var(--nit-blue-dark); }
+.nit-box:hover::after { transform: scaleX(1); }
+.nit-box__num {
+    font-family: var(--font-anek-latin) !important;
+    font-weight: 200; font-size: 60px; line-height: 1;
+    letter-spacing: var(--tracking-tight); color: #FFFFFF;
+}
+.nit-box__num small { font-size: 24px; margin-left: 6px; color: rgba(255,255,255,.6); font-family: inherit !important; }
+.nit-box__label { margin-top: 14px; font-size: 16px; font-weight: 300; line-height: 1.4; color: rgba(255,255,255,.85); }
+.nit-box__icon {
+    position: absolute; top: 24px; right: 24px;
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(255,255,255,.35);
+    transition: background-color var(--dur-slow) ease-in-out, border-color var(--dur-slow) ease-in-out;
+}
+.nit-box__icon i { font-size: 15px; color: #FFFFFF; transition: color var(--dur-slow) ease-in-out; }
+.nit-box:hover .nit-box__icon { background: var(--nit-sky); border-color: var(--nit-sky); }
+.nit-box:hover .nit-box__icon i { color: var(--nit-blue); }
+@media (max-width: 991px) {
+    .nit-boxes--4 { grid-template-columns: repeat(2, 1fr); }
+    .nit-boxes--3 { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 575px) {
+    .nit-boxes { gap: 12px; margin-bottom: 12px; }
+    .nit-boxes--4, .nit-boxes--3 { grid-template-columns: repeat(2, 1fr); }
+    .nit-box { min-height: 130px; padding: 18px 16px; }
+    .nit-box__num { font-size: 42px; }
+    .nit-box__num small { font-size: 18px; }
+    .nit-box__label { font-size: 13px; margin-top: 10px; }
+    .nit-box__icon { top: 14px; right: 14px; width: 32px; height: 32px; }
+    .nit-box__icon i { font-size: 12px; }
+}
+
+/* ── Snappier overlays: modals open in ~180 ms (Bootstrap default ~450 ms) ── */
+.modal.fade .modal-dialog { transition: transform .18s var(--ease-standard) !important; transform: translateY(-12px) !important; }
+.modal.fade.show .modal-dialog, .modal.show .modal-dialog { transform: none !important; }
+.modal.fade, .modal-backdrop.fade { transition: opacity .15s linear !important; }
+.custom-select-options { transition-duration: .15s !important; }
+@media (prefers-reduced-motion: reduce) {
+    .modal.fade .modal-dialog, .modal.fade, .modal-backdrop.fade { transition: none !important; }
+}
+/* Backdrop fades quickly too: Bootstrap runs backdrop + dialog one after the other */
+.modal-backdrop.fade { transition-duration: .08s !important; }
+.modal.fade .modal-dialog { transition-duration: .15s !important; }
+
+/* ── No content jump on load ──────────────────────────────────────────────
+   The header is position:fixed; the theme's sticky.js used to add a 67px spacer
+   only after the page finished loading, so content jumped down. Reserve the space
+   in CSS from the first paint instead and neutralise the late spacer. */
+.app-header.sticky { height: 68px !important; box-sizing: border-box; }
+.page-main { padding-top: 68px; }
+.page-main > .sticky { margin-bottom: 0 !important; }
+.page-main > .jumps-prevent { display: none !important; }
+

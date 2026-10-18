@@ -15,14 +15,17 @@
     <title>NIT Admin | Nesma Infrastructure &amp; Technology</title>
 
     <!-- GOOGLE FONTS -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- NIT design system fonts: Jost (free Futura substitute), Anek Latin (numbers), Noto Kufi Arabic -->
-    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500;600&family=Anek+Latin:wght@200;400;500&family=Noto+Kufi+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Fonts & icons served locally (no third-party round trips); critical files preloaded -->
+    <link rel="preload" href="{% static 'superadmin/assets/fonts/jost-latin.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{% static 'superadmin/assets/fonts/anek-latin-latin.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{% static 'superadmin/assets/fontawesome/webfonts/fa-solid-900.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link href="{% static 'superadmin/assets/fonts/nit-fonts.css' %}" rel="stylesheet">
+    <link href="{% static 'superadmin/assets/fontawesome/css/all.min.css' %}" rel="stylesheet">
+    <!-- Arabic font: only downloaded by the browser when a page contains Arabic text -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 
     <!-- ADMIN THEME: Bootstrap + theme + feather icons, purged & minified (scripts/build-admin-css.mjs) -->
     <link id="style" href="{% static 'superadmin/assets/css/admin.bundle.min.css' %}" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
     <!-- NIT CUSTOM THEME -->
     <link href="{% static 'superadmin/assets/css/style-custom.css' %}" rel="stylesheet" />
