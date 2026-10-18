@@ -42,7 +42,10 @@ With more than one worker set `CACHE_URL=redis://127.0.0.1:6379/1` so cache inva
 
 ## Frontend API
 
-The API contract for the Next.js team is in [docs/NIT_API_Integration_Guide.pdf](docs/NIT_API_Integration_Guide.pdf).
+Live: admin `https://nit-admin.zakhf.com/` · API `https://nit-admin.zakhf.com/api/`
+
+- Frontend API contract: [docs/NIT_API_Integration_Guide.pdf](docs/NIT_API_Integration_Guide.pdf)
+- Hosting / server runbook: [docs/NIT_Hosting_Guide.pdf](docs/NIT_Hosting_Guide.pdf) (source: [deploy/HOSTING.md](deploy/HOSTING.md))
 
 Every endpoint accepts `?lang=ar` (or `Accept-Language: ar`); Arabic fields fall back to English when empty.
 Images are returned as full `https://` URLs built from `MEDIA_DOMAIN`.
