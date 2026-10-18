@@ -72,13 +72,31 @@ jobs:
             echo "::warning::Deploy skipped - add HOST, USERNAME and SSH_KEY repository secrets to enable automatic deploys."
           fi
 
+      - name: Validate SSH key
+        if: steps.secrets.outputs.ready == 'true'
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          HOST: ${{ secrets.HOST }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1; then
+            echo "::error::SSH_KEY is not a valid private key. Paste the whole PRIVATE key (pbcopy < ~/.ssh/nesma_deploy), including the BEGIN/END lines - not the .pub file."
+            exit 1
+          fi
+          echo "Deploy key fingerprint: $(ssh-keygen -lf ~/.ssh/deploy_key | awk '{print $2}')"
+          # pin the server's host key (no trust-on-first-use)
+          HOST=$(printf '%s' "$HOST" | tr -d '[:space:]')
+          echo "$HOST ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICMJOH+Rd7a6R+8FhpEO4WFa/N8tqQnZMu9aCgqM8uq7" > ~/.ssh/known_hosts
+
       - name: Deploy over SSH
         if: steps.secrets.outputs.ready == 'true'
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script_stop: true
-          command_timeout: 15m
-          script: bash /var/www/nesma/app/deploy/deploy.sh
+        env:
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+        # the key is restricted on the server to run deploy/deploy.sh only
+        run: |
+          HOST=$(printf '%s' "$HOST" | tr -d '[:space:]')
+          USERNAME=$(printf '%s' "$USERNAME" | tr -d '[:space:]')
+          ssh -T -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=20 "$USERNAME@$HOST"
