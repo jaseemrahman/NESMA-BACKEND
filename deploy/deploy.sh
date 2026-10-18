@@ -6,6 +6,14 @@
 # after the restart, the previous commit is restored automatically.
 set -euo pipefail
 
+# `git reset` below rewrites this very file - run from a private copy so bash never reads a changing script
+if [ -z "${NESMA_DEPLOY_COPY:-}" ]; then
+    COPY=$(mktemp /tmp/nesma-deploy.XXXXXX)
+    cp "$0" "$COPY"
+    NESMA_DEPLOY_COPY=1 exec bash "$COPY" "$@"
+fi
+trap 'rm -f "$0"' EXIT
+
 APP=/var/www/nesma/app
 VENV=/var/www/nesma/venv
 BRANCH=${BRANCH:-main}
@@ -37,7 +45,7 @@ rollback() {
 
 sudo /usr/bin/systemctl restart nesma
 sleep 3
-if ! sudo /usr/bin/systemctl is-active --quiet nesma; then rollback; fi
+if ! sudo /usr/bin/systemctl is-active nesma >/dev/null; then rollback; fi
 
 for attempt in 1 2 3 4 5; do
     if curl -fsS --max-time 10 -o /dev/null "$HEALTH_URL"; then
