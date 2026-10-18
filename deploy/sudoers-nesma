@@ -1,0 +1,2 @@
+# /etc/sudoers.d/nesma - the deploy user may only restart its own service
+nesma ALL=(root) NOPASSWD: /usr/bin/systemctl restart nesma, /usr/bin/systemctl reload nesma, /usr/bin/systemctl is-active nesma, /usr/bin/systemctl status nesma

@@ -1,11 +1,13 @@
 """
 Fill every admin module with realistic demo data (English + Arabic).
 
-    python manage.py seed_demo_data            # add demo data (skips records that already exist)
-    python manage.py seed_demo_data --reset    # delete previous demo data first, then re-create it
+    python manage.py seed_demo_data               # blogs + demo enquiries/applications (skips existing records)
+    python manage.py seed_demo_data --blogs-only  # only the website's media-centre posts (use on servers)
+    python manage.py seed_demo_data --reset       # delete previous demo data first, then re-create it
 
 Demo enquiries / applications use @example.com emails so they are easy to identify and remove.
 """
+import datetime
 import io
 from datetime import timedelta
 from pathlib import Path
@@ -23,94 +25,160 @@ from superadmin.models import Blog, BlogCategory, CareerApplication, Enquiry
 DEMO_MEDIA = Path(__file__).resolve().parent / 'demo_media'
 DEMO_EMAIL_DOMAIN = '@example.com'
 
+# The six posts published on https://nit-hazel.vercel.app/media (same slugs as the website URLs)
 BLOGS = [
     {
-        'category': 'news', 'image': 's-1.jpg', 'days_ago': 10,
+        'slug': 'sar-160-million-contract', 'category': 'news', 'image': 's-1.jpg', 'date': '2026-03-12',
         'title': 'Nesma Infrastructure & Technology Signs a Contract Valued at Over SAR 160 Million',
-        'title_ar': 'نسما للبنية التحتية والتقنية توقع عقداً بقيمة تتجاوز 160 مليون ريال',
+        'title_ar': 'نسما للبنية التحتية والتقنية توقّع عقداً بقيمة تتجاوز 160 مليون ريال',
         'location': 'Riyadh, Saudi Arabia', 'location_ar': 'الرياض، المملكة العربية السعودية',
-        'short_description': 'A new contract that reinforces NIT as a trusted delivery partner for critical infrastructure.',
-        'short_description_ar': 'عقد جديد يعزز مكانة نسما كشريك موثوق لتنفيذ مشاريع البنية التحتية الحيوية.',
+        'short_description': 'A new contract valued at over SAR 160 million reinforces NIT as a trusted delivery partner '
+                             'for critical infrastructure across the Kingdom.',
+        'short_description_ar': 'عقد جديد بقيمة تتجاوز 160 مليون ريال يعزز مكانة نسما كشريك موثوق لتنفيذ مشاريع البنية '
+                                'التحتية الحيوية في المملكة.',
         'content': '<p>We are proud to announce that <strong>Nesma Infrastructure &amp; Technology</strong> has signed a new '
                    'contract valued at over SAR 160 million, reinforcing our position as a trusted delivery partner for '
-                   'critical infrastructure across the Kingdom.</p><p>The scope covers design, procurement and construction '
-                   'work that will expand regional power transmission capacity.</p>',
-        'content_ar': '<p>يسرنا الإعلان عن توقيع <strong>نسما للبنية التحتية والتقنية</strong> عقداً جديداً بقيمة تتجاوز '
+                   'critical infrastructure across the Kingdom.</p>'
+                   '<p>The scope covers design, procurement, and construction work that will expand regional power '
+                   'transmission capacity, supporting growing demand across commercial and industrial sectors.</p>'
+                   '<p>At NIT, we remain committed to delivering projects that strengthen the Kingdom\'s infrastructure '
+                   'backbone while upholding the highest standards of safety, quality, and execution.</p>',
+        'content_ar': '<p>يسرّنا الإعلان عن توقيع <strong>نسما للبنية التحتية والتقنية</strong> عقداً جديداً بقيمة تتجاوز '
                       '160 مليون ريال، مما يعزز مكانتنا كشريك موثوق لتنفيذ مشاريع البنية التحتية الحيوية في المملكة.</p>'
-                      '<p>يشمل نطاق العمل التصميم والتوريد والإنشاء لتوسيع قدرة نقل الطاقة الإقليمية.</p>',
+                      '<p>يشمل نطاق العمل أعمال التصميم والتوريد والإنشاء لتوسيع قدرة نقل الطاقة الإقليمية، دعماً للطلب '
+                      'المتزايد في القطاعات التجارية والصناعية.</p>'
+                      '<p>نلتزم في نسما بتنفيذ مشاريع تعزز البنية التحتية للمملكة مع الحفاظ على أعلى معايير السلامة '
+                      'والجودة والتنفيذ.</p>',
     },
     {
-        'category': 'announcement', 'image': 's-2.jpg', 'days_ago': 22,
-        'title': 'NIT Signs New Contract with the SEC in Jubail, Valued at Over SAR 500 Million',
-        'title_ar': 'نسما توقع عقداً جديداً مع الشركة السعودية للكهرباء في الجبيل بقيمة تتجاوز 500 مليون ريال',
-        'location': 'Jubail, Saudi Arabia', 'location_ar': 'الجبيل، المملكة العربية السعودية',
-        'short_description': 'A major substation and transmission package for the Saudi Electricity Company.',
-        'short_description_ar': 'حزمة رئيسية لمحطات التحويل وخطوط النقل للشركة السعودية للكهرباء.',
-        'content': '<p>NIT has been awarded a contract by the Saudi Electricity Company in Jubail valued at over SAR 500 '
-                   'million, covering new substations and high-voltage transmission lines.</p>',
-        'content_ar': '<p>حصلت نسما على عقد من الشركة السعودية للكهرباء في الجبيل بقيمة تتجاوز 500 مليون ريال، '
-                      'يشمل محطات تحويل جديدة وخطوط نقل جهد عالٍ.</p>',
-    },
-    {
-        'category': 'insights', 'image': 's3.jpg', 'days_ago': 35,
-        'title': 'NIT Signs New Contract with the Saudi Electricity Company',
-        'title_ar': 'نسما توقع عقداً جديداً مع الشركة السعودية للكهرباء',
+        'slug': 'sec-jubail-contract', 'category': 'announcement', 'image': 's-2.jpg', 'date': '2026-02-28',
+        'title': 'Nesma Infrastructure & Technology Signs New Contract with the SEC in Jubail, valued at over SAR 500 Million',
+        'title_ar': 'نسما للبنية التحتية والتقنية توقّع عقداً جديداً مع الشركة السعودية للكهرباء في الجبيل بقيمة تتجاوز 500 مليون ريال',
         'location': 'Riyadh, Saudi Arabia', 'location_ar': 'الرياض، المملكة العربية السعودية',
-        'short_description': 'Strengthening grid reliability with a new distribution upgrade programme.',
-        'short_description_ar': 'تعزيز موثوقية الشبكة من خلال برنامج جديد لتطوير شبكات التوزيع.',
-        'content': '<p>The new agreement with the Saudi Electricity Company focuses on distribution network upgrades that '
-                   'improve reliability for residential and industrial customers.</p>',
-        'content_ar': '<p>تركز الاتفاقية الجديدة مع الشركة السعودية للكهرباء على تطوير شبكات التوزيع لتحسين '
-                      'موثوقية الخدمة للعملاء السكنيين والصناعيين.</p>',
+        'short_description': 'A new SAR 500 million contract with the Saudi Electricity Company expands NIT\'s footprint '
+                             'in the Eastern Province.',
+        'short_description_ar': 'عقد جديد بقيمة 500 مليون ريال مع الشركة السعودية للكهرباء يوسّع حضور نسما في المنطقة الشرقية.',
+        'content': '<p><strong>Nesma Infrastructure &amp; Technology</strong> has signed a new contract with the Saudi '
+                   'Electricity Company (SEC) in Jubail, valued at over SAR 500 million, further expanding our footprint '
+                   'in the Eastern Province.</p>'
+                   '<p>The project will deliver new substation and transmission infrastructure designed to support the '
+                   'region\'s industrial growth and long-term energy security.</p>'
+                   '<p>This award reflects the continued confidence our partners place in NIT\'s ability to deliver complex '
+                   'energy infrastructure on time and to the highest technical standards.</p>',
+        'content_ar': '<p>وقّعت <strong>نسما للبنية التحتية والتقنية</strong> عقداً جديداً مع الشركة السعودية للكهرباء في '
+                      'الجبيل بقيمة تتجاوز 500 مليون ريال، مما يوسّع حضورنا في المنطقة الشرقية.</p>'
+                      '<p>سيوفر المشروع محطات تحويل وبنية تحتية جديدة لنقل الطاقة لدعم النمو الصناعي في المنطقة وتعزيز '
+                      'أمن الطاقة على المدى الطويل.</p>'
+                      '<p>تعكس هذه الترسية الثقة المستمرة التي يوليها شركاؤنا لقدرة نسما على تنفيذ مشاريع الطاقة المعقدة '
+                      'في الوقت المحدد ووفق أعلى المعايير الفنية.</p>',
     },
     {
-        'category': 'news', 'image': 'b3.jpg', 'days_ago': 48,
-        'title': 'New Contract with the National Grid SA',
+        'slug': 'saudi-electricity-company-contract', 'category': 'insights', 'image': 's3.jpg', 'date': '2026-01-15',
+        'title': 'Nesma Infrastructure & Technology Signs New Contract with the Saudi Electricity Company',
+        'title_ar': 'نسما للبنية التحتية والتقنية توقّع عقداً جديداً مع الشركة السعودية للكهرباء',
+        'location': 'Riyadh, Saudi Arabia', 'location_ar': 'الرياض، المملكة العربية السعودية',
+        'short_description': 'Extending a long-standing partnership to deliver national power infrastructure across '
+                             'multiple substation sites.',
+        'short_description_ar': 'امتداد لشراكة طويلة لتنفيذ البنية التحتية الوطنية للطاقة في عدة مواقع لمحطات التحويل.',
+        'content': '<p><strong>Nesma Infrastructure &amp; Technology</strong> has signed a new contract with the Saudi '
+                   'Electricity Company, extending our long-standing partnership in delivering national power '
+                   'infrastructure.</p>'
+                   '<p>The agreement covers engineering, procurement, and construction services across multiple substation '
+                   'sites, reinforcing grid reliability for communities and industry alike.</p>'
+                   '<p>We look forward to building on this partnership as the Kingdom continues to scale its energy '
+                   'infrastructure in line with Vision 2030.</p>',
+        'content_ar': '<p>وقّعت <strong>نسما للبنية التحتية والتقنية</strong> عقداً جديداً مع الشركة السعودية للكهرباء، '
+                      'امتداداً لشراكتنا الطويلة في تنفيذ البنية التحتية الوطنية للطاقة.</p>'
+                      '<p>تشمل الاتفاقية خدمات الهندسة والتوريد والإنشاء في عدة مواقع لمحطات التحويل، مما يعزز موثوقية '
+                      'الشبكة للمجتمعات والقطاع الصناعي على حد سواء.</p>'
+                      '<p>نتطلع إلى البناء على هذه الشراكة مع مواصلة المملكة توسيع بنيتها التحتية للطاقة تماشياً مع '
+                      'رؤية 2030.</p>',
+    },
+    {
+        'slug': 'national-grid-sa-contract', 'category': 'news', 'image': 'b3.jpg', 'date': '2026-03-12',
+        'title': 'New contract with the National Grid SA',
         'title_ar': 'عقد جديد مع الشبكة الوطنية السعودية',
         'location': 'Riyadh, Saudi Arabia', 'location_ar': 'الرياض، المملكة العربية السعودية',
-        'short_description': 'Supporting the National Grid SA with transmission and smart-grid capabilities.',
-        'short_description_ar': 'دعم الشبكة الوطنية السعودية بقدرات النقل والشبكات الذكية.',
-        'content': '<p>NIT will deliver transmission infrastructure and smart-grid integration for the National Grid SA, '
-                   'supporting the Kingdom\'s energy transition goals.</p>',
-        'content_ar': '<p>ستنفذ نسما بنية تحتية للنقل وتكاملاً للشبكات الذكية لصالح الشبكة الوطنية السعودية، '
-                      'دعماً لأهداف تحول الطاقة في المملكة.</p>',
+        'short_description': 'Critical upgrades to transmission infrastructure that improve grid resilience and capacity.',
+        'short_description_ar': 'تطويرات حيوية للبنية التحتية لنقل الطاقة تعزز مرونة الشبكة وقدرتها.',
+        'content': '<p><strong>Nesma Infrastructure &amp; Technology</strong> has been awarded a new contract with the '
+                   'National Grid SA, covering critical upgrades to transmission infrastructure across the network.</p>'
+                   '<p>The work will improve grid resilience and capacity, supporting the Kingdom\'s growing energy demand '
+                   'across residential, commercial, and industrial sectors.</p>'
+                   '<p>This award builds on NIT\'s track record of delivering large-scale energy infrastructure projects '
+                   'safely, efficiently, and to the highest quality standards.</p>',
+        'content_ar': '<p>حصلت <strong>نسما للبنية التحتية والتقنية</strong> على عقد جديد مع الشبكة الوطنية السعودية يشمل '
+                      'تطويرات حيوية للبنية التحتية لنقل الطاقة في أنحاء الشبكة.</p>'
+                      '<p>ستعزز الأعمال مرونة الشبكة وقدرتها، دعماً للطلب المتزايد على الطاقة في المملكة في القطاعات '
+                      'السكنية والتجارية والصناعية.</p>'
+                      '<p>تأتي هذه الترسية امتداداً لسجل نسما في تنفيذ مشاريع الطاقة الكبرى بأمان وكفاءة ووفق أعلى '
+                      'معايير الجودة.</p>',
     },
     {
-        'category': 'announcement', 'image': 'blog2.jpg', 'days_ago': 63,
-        'title': 'The China-Saudi Economic Cooperation Forum 2026',
-        'title_ar': 'منتدى التعاون الاقتصادي السعودي الصيني 2026',
+        'slug': 'china-saudi-economic-cooperation-forum-2026', 'category': 'announcement', 'image': 'blog2.jpg',
+        'date': '2026-02-28',
+        'title': 'The China–Saudi Economic Cooperation Forum 2026',
+        'title_ar': 'منتدى التعاون الاقتصادي الصيني السعودي 2026',
         'location': 'Riyadh, Saudi Arabia', 'location_ar': 'الرياض، المملكة العربية السعودية',
-        'short_description': 'NIT joined industry leaders to discuss infrastructure and technology partnerships.',
-        'short_description_ar': 'شاركت نسما قادة القطاع في مناقشة شراكات البنية التحتية والتقنية.',
-        'content': '<p>NIT participated in the China-Saudi Economic Cooperation Forum 2026, exploring partnerships in '
-                   'energy, digital infrastructure and advanced manufacturing.</p>',
-        'content_ar': '<p>شاركت نسما في منتدى التعاون الاقتصادي السعودي الصيني 2026، لاستكشاف الشراكات في مجالات '
-                      'الطاقة والبنية التحتية الرقمية والتصنيع المتقدم.</p>',
+        'short_description': 'NIT joined industry and government leaders to explore bilateral investment and technology '
+                             'exchange.',
+        'short_description_ar': 'شاركت نسما قادة القطاع والحكومة في استكشاف فرص الاستثمار الثنائي وتبادل التقنية.',
+        'content': '<p><strong>Nesma Infrastructure &amp; Technology</strong> participated in the China–Saudi Economic '
+                   'Cooperation Forum 2026, joining industry and government leaders to explore new avenues for bilateral '
+                   'investment and technology exchange.</p>'
+                   '<p>Discussions centered on infrastructure, energy, and digital transformation — sectors where NIT '
+                   'continues to play an active role in delivering the Kingdom\'s national priorities.</p>'
+                   '<p>We remain committed to building strategic partnerships that bring world-class technology and '
+                   'expertise to Saudi Arabia\'s infrastructure sector.</p>',
+        'content_ar': '<p>شاركت <strong>نسما للبنية التحتية والتقنية</strong> في منتدى التعاون الاقتصادي الصيني السعودي '
+                      '2026، إلى جانب قادة القطاع والحكومة لاستكشاف آفاق جديدة للاستثمار الثنائي وتبادل التقنية.</p>'
+                      '<p>تمحورت النقاشات حول البنية التحتية والطاقة والتحول الرقمي، وهي قطاعات تواصل نسما فيها دورها '
+                      'الفاعل في تحقيق الأولويات الوطنية للمملكة.</p>'
+                      '<p>نلتزم ببناء شراكات استراتيجية تجلب التقنية والخبرات العالمية إلى قطاع البنية التحتية في '
+                      'المملكة العربية السعودية.</p>',
     },
     {
-        'category': 'article', 'image': 'blog3.jpg', 'days_ago': 80,
+        'slug': 'international-alignment-forum-vision-2030', 'category': 'insights', 'image': 'blog3.jpg',
+        'date': '2026-01-15',
         'title': 'The International Alignment Forum on Saudi Vision 2030',
         'title_ar': 'المنتدى الدولي للمواءمة مع رؤية السعودية 2030',
         'location': 'Riyadh, Saudi Arabia', 'location_ar': 'الرياض، المملكة العربية السعودية',
-        'short_description': 'How local content and digital transformation shape the next decade of infrastructure.',
-        'short_description_ar': 'كيف يشكل المحتوى المحلي والتحول الرقمي العقد القادم من البنية التحتية.',
-        'content': '<p>At the International Alignment Forum on Saudi Vision 2030, NIT shared its roadmap to reach 50% '
-                   'local content by 2027 while accelerating digital transformation.</p>',
-        'content_ar': '<p>في المنتدى الدولي للمواءمة مع رؤية السعودية 2030، استعرضت نسما خارطة طريقها للوصول إلى '
-                      '50% من المحتوى المحلي بحلول 2027 مع تسريع التحول الرقمي.</p>',
-    },
-    {
-        # inactive draft: useful for testing the Active / Inactive filters
-        'category': 'news', 'image': 's-1.jpg', 'days_ago': 2, 'is_active': False,
-        'title': 'Draft: Oxagon Village Project Update',
-        'title_ar': 'مسودة: تحديث مشروع قرية أوكساجون',
-        'location': 'NEOM, Saudi Arabia', 'location_ar': 'نيوم، المملكة العربية السعودية',
-        'short_description': 'Unpublished draft - not visible on the website.',
-        'short_description_ar': 'مسودة غير منشورة - لا تظهر على الموقع.',
-        'content': '<p>Progress update on the Oxagon Village living community (draft).</p>',
-        'content_ar': '<p>تحديث حول تقدم مجتمع قرية أوكساجون السكني (مسودة).</p>',
+        'short_description': 'A keynote on turning ambitious visions into tangible achievements through execution and '
+                             'strategic partnerships.',
+        'short_description_ar': 'كلمة رئيسية حول تحويل الرؤى الطموحة إلى إنجازات ملموسة من خلال التنفيذ والشراكات الاستراتيجية.',
+        'content': '<p>We are proud at <strong>Nesma Infrastructure &amp; Technology</strong> to have participated in the '
+                   'International Alignment Forum on Saudi Vision 2030, where Eng. <strong>Rayan Alamoudi</strong>, '
+                   'Executive Manager of Strategy &amp; Business Development, delivered a keynote speech on transforming '
+                   'ambitious visions into tangible achievements through execution and strategic partnerships.</p>'
+                   '<p>Saudi Arabia\'s Vision 2030 is not merely a strategic direction — it is a national transformation '
+                   'program driven by technology, investment, and innovation. Through key sectors such as smart cities, '
+                   'energy sustainability, advanced manufacturing, and the digital economy, the Kingdom is actively '
+                   'building a competitive and sustainable future.</p>'
+                   '<p>At NIT, we remain committed to supporting this transformation through resilient infrastructure, '
+                   'advanced technological solutions, and long-term partnerships that create real impact on the ground.</p>',
+        'content_ar': '<p>نفخر في <strong>نسما للبنية التحتية والتقنية</strong> بمشاركتنا في المنتدى الدولي للمواءمة مع '
+                      'رؤية السعودية 2030، حيث ألقى المهندس <strong>ريان العمودي</strong>، المدير التنفيذي للاستراتيجية '
+                      'وتطوير الأعمال، كلمة رئيسية حول تحويل الرؤى الطموحة إلى إنجازات ملموسة من خلال التنفيذ '
+                      'والشراكات الاستراتيجية.</p>'
+                      '<p>رؤية السعودية 2030 ليست مجرد توجه استراتيجي، بل برنامج تحول وطني تقوده التقنية والاستثمار '
+                      'والابتكار. ومن خلال قطاعات رئيسية مثل المدن الذكية واستدامة الطاقة والتصنيع المتقدم والاقتصاد '
+                      'الرقمي، تبني المملكة مستقبلاً تنافسياً ومستداماً.</p>'
+                      '<p>نلتزم في نسما بدعم هذا التحول من خلال بنية تحتية مرنة وحلول تقنية متقدمة وشراكات طويلة الأمد '
+                      'تحقق أثراً حقيقياً على أرض الواقع.</p>',
     },
 ]
+
+# Extra unpublished draft (full demo only) for testing the Active / Inactive filters
+DRAFT_BLOG = {
+    'slug': 'oxagon-village-project-update', 'category': 'news', 'image': 's-1.jpg', 'date': None, 'is_active': False,
+    'title': 'Draft: Oxagon Village Project Update',
+    'title_ar': 'مسودة: تحديث مشروع قرية أوكساجون',
+    'location': 'NEOM, Saudi Arabia', 'location_ar': 'نيوم، المملكة العربية السعودية',
+    'short_description': 'Unpublished draft - not visible on the website.',
+    'short_description_ar': 'مسودة غير منشورة - لا تظهر على الموقع.',
+    'content': '<p>Progress update on the Oxagon Village living community (draft).</p>',
+    'content_ar': '<p>تحديث حول تقدم مجتمع قرية أوكساجون السكني (مسودة).</p>',
+}
 
 ENQUIRIES = [
     # (source, first, last, company, phone, local email, message, language, hours_ago)
@@ -183,38 +251,47 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--reset', action='store_true', help='Delete existing demo data before seeding.')
+        parser.add_argument('--blogs-only', action='store_true',
+                            help='Only add blog categories + the published website posts (no enquiries/applications/draft).')
 
     @transaction.atomic
     def handle(self, *args, **options):
+        blogs_only = options['blogs_only']
         if options['reset']:
-            self.reset()
-        blogs = self.seed_blogs()
+            self.reset(blogs_only)
+        # make sure the website's categories exist and are published
+        BlogCategory.objects.filter(slug__in={b['category'] for b in BLOGS}).update(is_active=True)
+        blogs = self.seed_blogs(BLOGS if blogs_only else BLOGS + [DRAFT_BLOG])
+        if blogs_only:
+            self.stdout.write(self.style.SUCCESS(f'Website media posts ready: {blogs} blogs created.'))
+            return
         enquiries = self.seed_enquiries()
         applications = self.seed_applications()
         self.stdout.write(self.style.SUCCESS(
             f'Demo data ready: {blogs} blogs, {enquiries} enquiries, {applications} career applications created.'
         ))
 
-    def reset(self):
-        titles = [b['title'] for b in BLOGS]
-        for blog in Blog.objects.filter(title__in=titles):
-            blog.delete()  # signal removes the image file
+    def reset(self, blogs_only=False):
+        for blog in Blog.objects.filter(slug__in=[b['slug'] for b in BLOGS + [DRAFT_BLOG]]):
+            blog.delete()  # signal removes the image + thumbnail files
+        if blogs_only:
+            self.stdout.write('Previous demo blogs removed.')
+            return
         Enquiry.objects.filter(email__endswith=DEMO_EMAIL_DOMAIN).delete()
         for application in CareerApplication.objects.filter(email__endswith=DEMO_EMAIL_DOMAIN):
             application.cv.delete(save=False)
             application.delete()
         self.stdout.write('Previous demo data removed.')
 
-    def seed_blogs(self):
+    def seed_blogs(self, posts):
         categories = {c.slug: c for c in BlogCategory.objects.all()}
-        today = timezone.localdate()
         created = 0
-        for sequence, data in enumerate(BLOGS, start=1):
-            if Blog.objects.filter(title=data['title']).exists():
+        for sequence, data in enumerate(posts, start=1):
+            if Blog.objects.filter(slug=data['slug']).exists():
                 continue
-            fields = {k: v for k, v in data.items() if k not in ('category', 'image', 'days_ago')}
-            blog = Blog(category=categories[data['category']], date=today - timedelta(days=data['days_ago']),
-                        sequence=sequence, **fields)
+            fields = {k: v for k, v in data.items() if k not in ('category', 'image', 'date')}
+            date = datetime.date.fromisoformat(data['date']) if data['date'] else timezone.localdate()
+            blog = Blog(category=categories[data['category']], date=date, sequence=sequence, **fields)
             image_path = DEMO_MEDIA / data['image']
             blog.image = SimpleUploadedFile(image_path.name, image_path.read_bytes(), content_type='image/jpeg')
             blog.save()

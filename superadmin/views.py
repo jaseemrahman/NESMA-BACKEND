@@ -296,8 +296,11 @@ class BlogAdd(AdminView):
         for field in self.TEXT_FIELDS:
             setattr(blog, field, request.POST.get(field, '').strip())
         blog.category_id = request.POST.get('category') or None
-        # Website URL slug is always generated from the English title
-        blog.slug = slugify(blog.title)[:255]
+        # Website URL slug: generated from the English title, and kept unchanged while the title stays the same
+        # (so published website links don't break when other fields are edited)
+        original_title = Blog.objects.filter(pk=blog.pk).values_list('title', flat=True).first() if id else None
+        if not blog.slug or blog.title != original_title:
+            blog.slug = slugify(blog.title)[:255]
         date = request.POST.get('date')
         try:
             blog.date = datetime.date.fromisoformat(date) if date else timezone.localdate()

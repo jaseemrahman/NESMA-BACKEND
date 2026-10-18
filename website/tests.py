@@ -271,7 +271,7 @@ class SuperadminTests(TestCase):
 
     def test_all_pages_render(self):
         blog = Blog.objects.create(category=self.news, title='Hello', content='x', image=make_image())
-        enquiry = Enquiry.objects.create(first_name='A', email='a@b.com', message='<script>x</script>')
+        Enquiry.objects.create(first_name='A', email='a@b.com', message='<script>x</script>')
         application = CareerApplication.objects.create(
             first_name='O', email='o@b.com', mobile='1234567', current_location='J', education='PhD',
             degree='CS', cv=make_pdf(),
@@ -445,7 +445,7 @@ class AdminPanelBehaviourTests(TestCase):
 
     # ── list filters ──
     def test_blog_status_filter_after_toggle(self):
-        a = Blog.objects.create(category=self.news, title='Alpha', title_ar='أ', content='x', content_ar='x', image=make_image())
+        Blog.objects.create(category=self.news, title='Alpha', title_ar='أ', content='x', content_ar='x', image=make_image())
         b = Blog.objects.create(category=self.news, title='Beta', title_ar='ب', content='x', content_ar='x', image=make_image())
         self.client.post(reverse('superadmin:StatusToggle'), {'model_name': 'Blog', 'id': b.id, 'status': 'false'})
 
@@ -692,3 +692,30 @@ class PaginationTests(TestCase):
         for name in ('BlogCategoryList', 'BlogList', 'EnquiryList', 'CareerApplicationList'):
             res = self.client.get(reverse(f'superadmin:{name}'), {'status': 'all'})
             self.assertEqual(res.status_code, 200, name)
+
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA)
+class WebsiteSeedTests(TestCase):
+    def test_blogs_only_seed_matches_website_slugs(self):
+        from django.core.management import call_command
+        call_command('seed_demo_data', '--blogs-only', stdout=io.StringIO())
+        self.assertEqual(Blog.objects.count(), 6)
+        self.assertFalse(Enquiry.objects.exists())
+        self.assertTrue(Blog.objects.filter(slug='sar-160-million-contract', date='2026-03-12', is_active=True).exists())
+        res = APIClient().get('/api/blogs/sar-160-million-contract/?lang=ar')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('160', res.json()['title'])
+
+    def test_slug_kept_when_title_unchanged(self):
+        User.objects.create_user('admin', 'admin@nit.com', 'StrongPass#2026', is_staff=True)
+        self.client.login(username='admin', password='StrongPass#2026')
+        news = BlogCategory.objects.get(slug='news')
+        blog = Blog.objects.create(category=news, slug='sar-160-million-contract', title='Contract', title_ar='عقد',
+                                   content='x', content_ar='x', image=make_image())
+        self.client.post(reverse('superadmin:BlogEdit', args=[blog.id]), {
+            'title': 'Contract', 'title_ar': 'عقد محدث', 'category': news.id, 'content': '<p>new</p>',
+            'content_ar': '<p>جديد</p>', 'date': '2026-03-12',
+        })
+        blog.refresh_from_db()
+        self.assertEqual(blog.slug, 'sar-160-million-contract')
+        self.assertEqual(blog.title_ar, 'عقد محدث')

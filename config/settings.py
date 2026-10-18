@@ -94,7 +94,9 @@ DATABASES = {
 if DATABASES['default']['ENGINE'] != 'django.db.backends.postgresql':
     raise ImproperlyConfigured('DATABASE_URL must point to a PostgreSQL database.')
 
-# Local-memory by default; set CACHE_URL=redis://127.0.0.1:6379/1 when running multiple workers
+# Local-memory is per process: with several gunicorn workers use a SHARED cache
+# (CACHE_URL=redis://127.0.0.1:6379/1 or filecache:///var/www/nesma/cache) so cache invalidation,
+# throttling and cached sessions behave the same in every worker.
 CACHES = {
     'default': env.cache('CACHE_URL', default='locmemcache://nesma'),
 }
@@ -134,11 +136,11 @@ TIME_FORMAT = 'h:i A'
 # 6. STATIC & MEDIA FILES
 # -----------------------------------------------------------------------------
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = env.path('STATIC_ROOT', default=BASE_DIR / 'staticfiles')
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = env.path('MEDIA_ROOT', default=BASE_DIR / 'media')
 
 STORAGES = {
     'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},

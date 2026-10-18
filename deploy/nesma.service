@@ -1,0 +1,36 @@
+# /etc/systemd/system/nesma.service  - NIT admin panel + API (gunicorn)
+[Unit]
+Description=NESMA (NIT) Django app - gunicorn
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=notify
+User=nesma
+Group=www-data
+WorkingDirectory=/var/www/nesma/app
+EnvironmentFile=/var/www/nesma/app/.env
+# /run/nesma/gunicorn.sock - Unix socket only (no TCP port, cannot clash with other projects)
+RuntimeDirectory=nesma
+RuntimeDirectoryMode=0750
+UMask=0007
+ExecStart=/var/www/nesma/venv/bin/gunicorn config.wsgi:application \
+    --bind unix:/run/nesma/gunicorn.sock \
+    --workers 3 \
+    --threads 2 \
+    --timeout 60 \
+    --max-requests 1000 --max-requests-jitter 100 \
+    --access-logfile - --error-logfile -
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+KillMode=mixed
+TimeoutStopSec=30
+# hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
