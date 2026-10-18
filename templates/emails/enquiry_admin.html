@@ -12,7 +12,7 @@
   <tr><td style="font-weight:bold; color:#2E368F; border-top:1px solid #EEF0FA;">Received</td><td style="border-top:1px solid #EEF0FA;">{{ enquiry.created_at|date:"d M Y, h:i A" }}</td></tr>
   <tr><td colspan="2" style="border-top:1px solid #EEF0FA; padding-top:16px;">
     <div style="font-weight:bold; color:#2E368F; margin-bottom:8px;">Message</div>
-    <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:14px; white-space:pre-wrap; line-height:1.6;" {% if enquiry.language == 'ar' %}dir="rtl"{% endif %}>{{ enquiry.message|default:"-" }}</div>
+    <div style="background:#F8FAFC; border:1px solid #E2E8F0; padding:14px; white-space:pre-wrap; line-height:1.6;" {% if enquiry.language == 'ar' %}dir="rtl"{% endif %}>{{ enquiry.message|default:"-" }}</div>
   </td></tr>
 </table>
 {% endblock %}

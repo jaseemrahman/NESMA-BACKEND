@@ -10,9 +10,7 @@
                     <h1 class="page-title"><i class="fas fa-user-tie me-2"></i>Career Applications</h1>
                 </div>
                 <div>
-                    <a href="{% url 'superadmin:CareerApplicationExport' %}" class="btn btn-light export-link" style="border-radius:12px; font-weight:600; color:#2E368F;">
-                        <i class="fas fa-file-pdf me-1" style="color:#DC2626;"></i> Export PDF
-                    </a>
+                    <a href="{% url 'superadmin:CareerApplicationExport' %}" class="nit-btn nit-btn--primary nit-btn--down export-link"><span class="nit-btn__label"><span class="nit-btn__text" data-text="Export PDF">Export PDF</span></span><span class="nit-btn__arrow">{% include "superadmin/layout/nit_arrow.html" %}</span></a>
                 </div>
             </div>
 

@@ -10,9 +10,7 @@
                     <h1 class="page-title"><i class="fas fa-user-tie me-2"></i>{{ application.full_name }}</h1>
                 </div>
                 <div>
-                    <a href="{{ back_url }}" class="btn btn-light" style="border-radius:12px;">
-                        <i class="fas fa-arrow-left me-1"></i> Back to List
-                    </a>
+                    <a href="{{ back_url }}" class="nit-btn nit-btn--secondary nit-btn--back"><span class="nit-btn__label"><span class="nit-btn__text" data-text="Back to List">Back to List</span></span><span class="nit-btn__arrow">{% include "superadmin/layout/nit_arrow.html" %}</span></a>
                 </div>
             </div>
 
@@ -78,9 +76,7 @@
                                     <label class="form-label" style="font-weight:600;">Internal Notes</label>
                                     <textarea name="admin_notes" class="form-control" rows="6" placeholder="Interview feedback, follow-ups...">{{ application.admin_notes }}</textarea>
                                 </div>
-                                <button type="submit" class="btn btn-primary w-100" style="border-radius:12px; font-weight:600;">
-                                    <i class="fas fa-save me-1"></i> Save Review
-                                </button>
+                                <button type="submit" class="nit-btn nit-btn--primary nit-btn--block"><span class="nit-btn__label"><span class="nit-btn__text" data-text="Save Review">Save Review</span></span><span class="nit-btn__arrow">{% include "superadmin/layout/nit_arrow.html" %}</span></button>
                             </form>
 
                             <hr class="my-4">

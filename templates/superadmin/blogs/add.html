@@ -10,9 +10,7 @@
                     <h1 class="page-title">{% if blog.pk %}Edit Blog{% else %}Add Blog{% endif %}</h1>
                 </div>
                 <div>
-                    <a href="{{ back_url }}" class="btn btn-light" style="border-radius:12px;">
-                        <i class="fas fa-arrow-left me-1"></i> Back to List
-                    </a>
+                    <a href="{{ back_url }}" class="nit-btn nit-btn--secondary nit-btn--back"><span class="nit-btn__label"><span class="nit-btn__text" data-text="Back to List">Back to List</span></span><span class="nit-btn__arrow">{% include "superadmin/layout/nit_arrow.html" %}</span></a>
                 </div>
             </div>
 
@@ -138,9 +136,7 @@
                                     <textarea name="meta_description" class="form-control" rows="3" maxlength="500" placeholder="defaults to short description">{{ blog.meta_description|default:'' }}</textarea>
                                 </div>
 
-                                <button type="submit" class="btn btn-primary w-100" style="border-radius:12px; font-weight:600; padding:11px;">
-                                    <i class="fas fa-save me-1"></i> Save Blog
-                                </button>
+                                <button type="submit" class="nit-btn nit-btn--primary nit-btn--block"><span class="nit-btn__label"><span class="nit-btn__text" data-text="Save Blog">Save Blog</span></span><span class="nit-btn__arrow">{% include "superadmin/layout/nit_arrow.html" %}</span></button>
                             </div>
                         </div>
                     </div>

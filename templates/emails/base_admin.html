@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>{% block title %}NIT Notification{% endblock %}</title></head>
-<body style="margin:0; padding:0; background:#F0F2F8; font-family:Arial, Helvetica, sans-serif; color:#1E293B;">
+<body style="margin:0; padding:0; background:#F0F2F8; font-family:Futura, 'Futura PT', Jost, Arial, Helvetica, sans-serif; color:#1E293B;">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F0F2F8; padding:28px 12px;">
   <tr><td align="center">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px; background:#ffffff; border-radius:14px; overflow:hidden; box-shadow:0 6px 24px rgba(46,54,143,0.08);">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px; background:#ffffff; overflow:hidden; border:1px solid #E5E7EB;">
       <tr>
-        <td style="background:linear-gradient(135deg,#1F2566,#2E368F); background-color:#2E368F; padding:22px 28px;">
+        <td style="background-color:#2E368F; padding:22px 28px;">
           <div style="font-size:12px; letter-spacing:2px; text-transform:uppercase; color:#81D1E8; font-weight:bold;">Nesma Infrastructure &amp; Technology</div>
-          <div style="font-size:20px; color:#ffffff; font-weight:bold; margin-top:6px;">{% block heading %}{% endblock %}</div>
+          <div style="font-size:24px; color:#ffffff; font-weight:300; margin-top:6px;">{% block heading %}{% endblock %}</div>
         </td>
       </tr>
       <tr><td style="padding:26px 28px;">{% block content %}{% endblock %}</td></tr>
       <tr>
         <td style="padding:0 28px 26px;">
-          <a href="{{ admin_url }}" style="display:inline-block; background:#2E368F; color:#ffffff; text-decoration:none; padding:11px 22px; border-radius:8px; font-size:14px; font-weight:bold;">Open Admin Panel</a>
+          <a href="{{ admin_url }}" style="display:inline-block; background:#2E368F; color:#ffffff; text-decoration:none; padding:12px 22px; text-transform:uppercase; letter-spacing:0.5px; font-size:12px; font-weight:500;">Open Admin Panel</a>
         </td>
       </tr>
       <tr>

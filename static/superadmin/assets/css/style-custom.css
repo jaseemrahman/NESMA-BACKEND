@@ -4,7 +4,7 @@
    Background: #EEF0FA | Surface: #FFFFFF
    ===================================================== */
 
-/* Inter + Noto Kufi Arabic are loaded once in layout/header.html */
+/* Fonts (Jost, Anek Latin, Noto Kufi Arabic) are loaded in layout/header.html; NIT design system overrides live in nit-design.css */
 
 /* ── CSS Variables ── */
 :root {

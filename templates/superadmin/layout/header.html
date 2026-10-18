@@ -17,7 +17,8 @@
     <!-- GOOGLE FONTS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- NIT design system fonts: Jost (free Futura substitute), Anek Latin (numbers), Noto Kufi Arabic -->
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500;600&family=Anek+Latin:wght@200;400;500&family=Noto+Kufi+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- ADMIN THEME: Bootstrap + theme + feather icons, purged & minified (scripts/build-admin-css.mjs) -->
     <link id="style" href="{% static 'superadmin/assets/css/admin.bundle.min.css' %}" rel="stylesheet" />
@@ -25,6 +26,8 @@
 
     <!-- NIT CUSTOM THEME -->
     <link href="{% static 'superadmin/assets/css/style-custom.css' %}" rel="stylesheet" />
+    <!-- NIT DESIGN SYSTEM (loaded last) -->
+    <link href="{% static 'superadmin/assets/css/nit-design.css' %}" rel="stylesheet" />
 
 </head>
 
