@@ -98,7 +98,11 @@ if DATABASES['default']['ENGINE'] != 'django.db.backends.postgresql':
 # (CACHE_URL=redis://127.0.0.1:6379/1 or filecache:///var/www/nesma/cache) so cache invalidation,
 # throttling and cached sessions behave the same in every worker.
 CACHES = {
-    'default': env.cache('CACHE_URL', default='locmemcache://nesma'),
+    'default': {
+        **env.cache('CACHE_URL', default='locmemcache://nesma'),
+        # isolates this project's keys when the Redis server is shared with other projects
+        'KEY_PREFIX': env('CACHE_KEY_PREFIX', default='nesma'),
+    },
 }
 API_CACHE_TIMEOUT = env.int('API_CACHE_TIMEOUT', default=60 * 15)
 

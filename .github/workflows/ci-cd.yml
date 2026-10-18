@@ -58,7 +58,22 @@ jobs:
       name: production
       url: https://nit-admin.zakhf.com
     steps:
+      - name: Check deploy secrets
+        id: secrets
+        env:
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          if [ -n "$HOST" ] && [ -n "$USERNAME" ] && [ -n "$SSH_KEY" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Deploy skipped - add HOST, USERNAME and SSH_KEY repository secrets to enable automatic deploys."
+          fi
+
       - name: Deploy over SSH
+        if: steps.secrets.outputs.ready == 'true'
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.HOST }}

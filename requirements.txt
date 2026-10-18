@@ -10,3 +10,4 @@ reportlab>=4.0
 arabic-reshaper>=3.0
 python-bidi>=0.4
 Brotli>=1.1  # WhiteNoise serves .br static files (smaller than gzip)
+redis>=5.0  # shared cache for multiple gunicorn workers (CACHE_URL=redis://...)
