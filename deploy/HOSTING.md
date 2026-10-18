@@ -49,13 +49,17 @@ Repository secrets (Settings → Secrets and variables → Actions):
 |--------|-------|
 | `HOST` | `88.222.214.123` |
 | `USERNAME` | `nesma` |
-| `SSH_KEY` | private key whose public key is in `/home/nesma/.ssh/authorized_keys` |
+| `SSH_KEY` | private key `~/.ssh/nesma_deploy` (on the maintainer's Mac); its public key is in `/home/nesma/.ssh/authorized_keys` |
+
+The deploy key is restricted with a forced command (`command="bash /var/www/nesma/app/deploy/deploy.sh",no-pty,...`):
+whatever is sent over SSH with it, it can only run the deploy script. To revoke CI access, delete that line.
 
 ## Manual deploy / maintenance (as root)
 
 ```bash
 sudo -u nesma bash /var/www/nesma/app/deploy/deploy.sh      # same as CI
-sudo -u nesma /var/www/nesma/venv/bin/python /var/www/nesma/app/manage.py createsuperuser
+sudo -u nesma /var/www/nesma/venv/bin/python /var/www/nesma/app/manage.py createsuperuser   # email is required (login uses email)
+sudo -u nesma /var/www/nesma/venv/bin/python /var/www/nesma/app/manage.py changepassword USERNAME
 sudo -u nesma /var/www/nesma/venv/bin/python /var/www/nesma/app/manage.py seed_demo_data --blogs-only
 ```
 
